@@ -1,0 +1,319 @@
+// Skema database Djotos Laundry. Uang disimpan sebagai Int (rupiah), berat sebagai Float (kg).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  OWNER
+  STAFF
+}
+
+enum OrderStatus {
+  RECEIVED   // Diterima
+  PROCESSING // Diproses
+  FINISHED   // Selesai
+  PICKED_UP  // Diambil
+  CANCELLED  // Dibatalkan
+}
+
+enum PaymentStatus {
+  UNPAID
+  PARTIAL
+  PAID
+}
+
+enum PayMethod {
+  CASH
+  QRIS
+}
+
+enum ServiceCategory {
+  REGULER
+  EXPRESS
+  SATUAN
+}
+
+enum Unit {
+  KG
+  PCS
+}
+
+enum BonusType {
+  PER_KG
+  PERCENT_OMZET
+}
+
+enum BonusStatus {
+  DRAFT
+  PAID
+}
+
+enum WaStatus {
+  QUEUED
+  SENT
+  FAILED
+}
+
+enum WaType {
+  FINISHED
+  FREE_READY
+  MANUAL
+  TEST
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  name         String
+  passwordHash String
+  role         Role     @default(STAFF)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  orders       Order[]
+  payments     Payment[]
+  expenses     Expense[]
+  freeClaims   FreeClaim[]
+  bonusRecords BonusRecord[]
+  auditLogs    AuditLog[]
+
+  @@map("users")
+}
+
+model Customer {
+  id        Int       @id @default(autoincrement())
+  name      String
+  phone     String?   @unique // format 62xxxxxxxxxx
+  address   String?
+  note      String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  orders     Order[]
+  freeClaims FreeClaim[]
+  waLogs     WaLog[]
+
+  @@index([name])
+  @@map("customers")
+}
+
+model Service {
+  id             Int             @id @default(autoincrement())
+  code           String          @unique // CK, CB, ST, CKX, ... SPK, BDJ
+  name           String
+  category       ServiceCategory
+  unit           Unit            @default(KG)
+  rate           Int // tarif per kg / per pcs
+  minQty         Float           @default(1) // minimum yang ditagih
+  minPrice       Int? // harga minimum (mis. CK 3 kg = 16.000)
+  durationHours  Int             @default(48)
+  countsForFree  Boolean         @default(false)
+  isActive       Boolean         @default(true)
+  sortOrder      Int             @default(0)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  items OrderItem[]
+
+  @@map("services")
+}
+
+model Order {
+  id            Int           @id @default(autoincrement())
+  invoiceNo     String        @unique
+  customerId    Int
+  staffId       Int
+  status        OrderStatus   @default(RECEIVED)
+  subtotal      Int
+  discount      Int           @default(0)
+  total         Int
+  paidAmount    Int           @default(0)
+  paymentStatus PaymentStatus @default(UNPAID)
+  isFree        Boolean       @default(false) // nota hasil klaim FREE
+  countsForFree Boolean       @default(false) // mengandung layanan yang dihitung FREE
+  freeClaimId   Int? // klaim yang "memakai" nota ini
+  note          String?
+  receivedAt    DateTime      @default(now())
+  estimatedAt   DateTime?
+  finishedAt    DateTime?
+  pickedUpAt    DateTime?
+  cancelledAt   DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  deletedAt     DateTime?
+
+  customer  Customer    @relation(fields: [customerId], references: [id])
+  staff     User        @relation(fields: [staffId], references: [id])
+  items     OrderItem[]
+  payments  Payment[]
+  waLogs    WaLog[]
+  consumedBy FreeClaim? @relation("ClaimConsumes", fields: [freeClaimId], references: [id])
+  claimOrder FreeClaim? @relation("ClaimOrder")
+
+  @@index([customerId])
+  @@index([staffId, createdAt])
+  @@index([createdAt])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id        Int    @id @default(autoincrement())
+  orderId   Int
+  serviceId Int
+  code      String // snapshot
+  name      String // snapshot
+  unit      Unit
+  qty       Float
+  unitPrice Int // tarif saat nota dibuat
+  subtotal  Int
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  service Service @relation(fields: [serviceId], references: [id])
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model Payment {
+  id           Int       @id @default(autoincrement())
+  orderId      Int
+  method       PayMethod
+  amount       Int
+  paidAt       DateTime  @default(now())
+  receivedById Int
+  note         String?
+  voidedAt     DateTime?
+
+  order      Order @relation(fields: [orderId], references: [id])
+  receivedBy User  @relation(fields: [receivedById], references: [id])
+
+  @@index([paidAt])
+  @@index([orderId])
+  @@map("payments")
+}
+
+model Expense {
+  id          Int       @id @default(autoincrement())
+  category    String
+  description String?
+  amount      Int
+  method      PayMethod @default(CASH)
+  spentAt     DateTime  @default(now())
+  createdById Int
+  createdAt   DateTime  @default(now())
+  deletedAt   DateTime?
+
+  createdBy User @relation(fields: [createdById], references: [id])
+
+  @@index([spentAt])
+  @@map("expenses")
+}
+
+model FreeClaim {
+  id          Int      @id @default(autoincrement())
+  customerId  Int
+  orderId     Int      @unique // nota FREE yang dibuat
+  claimedById Int
+  claimedAt   DateTime @default(now())
+
+  customer  Customer @relation(fields: [customerId], references: [id])
+  claimedBy User     @relation(fields: [claimedById], references: [id])
+  order     Order    @relation("ClaimOrder", fields: [orderId], references: [id])
+  consumed  Order[]  @relation("ClaimConsumes") // 9 nota yang dipakai
+
+  @@map("free_claims")
+}
+
+model BonusRule {
+  id        Int       @id @default(autoincrement())
+  name      String
+  type      BonusType
+  value     Float // Rp per kg, atau persen omzet
+  minTarget Int       @default(0) // PER_KG: min kg/bulan, PERCENT_OMZET: min omzet/bulan
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("bonus_rules")
+}
+
+model BonusRecord {
+  id         Int         @id @default(autoincrement())
+  userId     Int
+  period     String // YYYY-MM
+  orderCount Int
+  totalKg    Float
+  omzet      Int
+  amount     Int
+  breakdown  Json
+  status     BonusStatus @default(DRAFT)
+  paidAt     DateTime?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, period])
+  @@map("bonus_records")
+}
+
+model WaLog {
+  id          Int      @id @default(autoincrement())
+  orderId     Int?
+  customerId  Int?
+  phone       String
+  message     String
+  type        WaType
+  status      WaStatus @default(QUEUED)
+  attempts    Int      @default(0)
+  error       String?
+  providerRef String?
+  createdAt   DateTime @default(now())
+  sentAt      DateTime?
+
+  order    Order?    @relation(fields: [orderId], references: [id])
+  customer Customer? @relation(fields: [customerId], references: [id])
+
+  @@index([createdAt])
+  @@map("wa_logs")
+}
+
+model Setting {
+  key   String @id
+  value Json
+
+  @@map("settings")
+}
+
+model Sequence {
+  key   String @id
+  value Int
+
+  @@map("sequences")
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  action    String // mis. ORDER_STATUS, PAYMENT_ADD
+  entity    String
+  entityId  Int?
+  before    Json?
+  after     Json?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
