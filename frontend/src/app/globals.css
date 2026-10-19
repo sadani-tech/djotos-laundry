@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: light; }
+html { -webkit-text-size-adjust: 100%; }
+body { @apply bg-slate-50 text-slate-900 antialiased; font-size: 16px; }
+input, select, textarea, button { font: inherit; }
+/* Hindari zoom otomatis iOS pada input */
+input, select, textarea { font-size: 16px; }
+
+@layer components {
+  .card { @apply rounded-2xl border border-slate-200 bg-white p-4 shadow-sm; }
+  .input { @apply min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 text-base placeholder:text-slate-400 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500/30 disabled:bg-slate-100; }
+  .label { @apply mb-1 block text-sm font-semibold text-slate-700; }
+}
+
+/* Cetak nota thermal 58 mm */
+@media print {
+  @page { size: 58mm auto; margin: 2mm; }
+  body { background: #fff !important; }
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+}
+.print-only { display: none; }
