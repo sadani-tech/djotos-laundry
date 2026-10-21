@@ -26,15 +26,15 @@ export default function WaPage() {
     <div>
       <PageHeader title="Log WhatsApp" back="/lainnya" right={isOwner ? <Button size="sm" variant="secondary" onClick={() => setTesting(true)}><Send className="h-4 w-4" /> Tes</Button> : undefined} />
       {gw.data && (
-        <div className={`mb-3 rounded-xl p-3 text-sm ${gw.data.provider === 'mock' ? 'bg-amber-50 text-amber-900' : gw.data.configured ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-700'}`}>
+        <div className={`mb-4 rounded-xl p-4 text-sm ${gw.data.provider === 'mock' ? 'bg-amber-50 text-amber-900' : gw.data.configured ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-700'}`}>
           Gateway: <b>{gw.data.provider}</b>{' '}
           {gw.data.provider === 'mock' ? '— mode simulasi, pesan TIDAK benar-benar terkirim. Atur WA_PROVIDER di server.' : gw.data.configured ? '— siap.' : '— belum dikonfigurasi (token kosong).'}
         </div>
       )}
-      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">{FILTERS.map((f) => <Chip key={f.v} active={status === f.v} onClick={() => setStatus(f.v)} tone={f.v === 'FAILED' ? 'red' : 'brand'}>{f.l}</Chip>)}</div>
-      <div className="mt-3 space-y-2">
+      <div className="bleed flex gap-2 overflow-x-auto  pb-1">{FILTERS.map((f) => <Chip key={f.v} active={status === f.v} onClick={() => setStatus(f.v)} tone={f.v === 'FAILED' ? 'red' : 'brand'}>{f.l}</Chip>)}</div>
+      <div className="mt-4 space-y-3">
         {error ? <ErrorBox error={error} retry={() => mutate()} /> : !data ? <Spinner /> : data.length === 0 ? <Empty title="Belum ada pesan" /> : data.map((l) => (
-          <div key={l.id} className="card p-3">
+          <div key={l.id} className="card p-4">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="truncate font-bold">{l.customer?.name ?? phoneShow(l.phone)} <span className="text-xs font-normal text-slate-500">· {TYPE[l.type]}</span></p>

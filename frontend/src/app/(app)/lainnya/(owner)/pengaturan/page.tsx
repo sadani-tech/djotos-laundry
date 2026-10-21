@@ -9,8 +9,8 @@ const PLACEHOLDERS = ['{nama}', '{no_nota}', '{total}', '{status_bayar}', '{sisa
 
 function Section({ title, children, onSave, busy }: { title: string; children: React.ReactNode; onSave: () => void; busy: boolean }) {
   return (
-    <section className="card mb-4">
-      <h2 className="mb-3 text-lg font-bold">{title}</h2>
+    <section className="card mb-5">
+      <h2 className="mb-4 text-lg font-bold">{title}</h2>
       {children}
       <Button className="w-full" loading={busy} onClick={onSave}>Simpan {title.toLowerCase()}</Button>
     </section>
@@ -44,17 +44,17 @@ export default function SettingsPage() {
 
       <Section title="Program FREE" busy={busy} onSave={() => save('free', 'Pengaturan FREE disimpan')}>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Jumlah nota untuk 1× gratis"><input className="input" inputMode="numeric" value={s.free.threshold} onChange={(e) => up('free', { threshold: parseInt(e.target.value.replace(/\D/g, '') || '0', 10) })} /></Field>
+          <Field label="Nota untuk 1× gratis"><input className="input" inputMode="numeric" value={s.free.threshold} onChange={(e) => up('free', { threshold: parseInt(e.target.value.replace(/\D/g, '') || '0', 10) })} /></Field>
           <Field label="Jatah gratis (kg)"><input className="input" inputMode="decimal" value={s.free.freeKg} onChange={(e) => up('free', { freeKg: parseFloat(e.target.value.replace(',', '.')) || 0 })} /></Field>
         </div>
-        <label className="mb-4 flex items-center gap-3 font-semibold"><input type="checkbox" className="h-6 w-6 accent-brand-600" checked={s.free.notifyReady} onChange={(e) => up('free', { notifyReady: e.target.checked })} /> Kirim WA ke customer saat progres penuh</label>
-        <p className="mb-4 text-sm text-slate-500">Layanan mana yang dihitung diatur di menu Layanan & Harga.</p>
+        <label className="mb-5 flex items-center gap-3 font-semibold"><input type="checkbox" className="h-6 w-6 accent-brand-600" checked={s.free.notifyReady} onChange={(e) => up('free', { notifyReady: e.target.checked })} /> Kirim WA ke customer saat progres penuh</label>
+        <p className="mb-5 text-sm text-slate-500">Layanan mana yang dihitung diatur di menu Layanan & Harga.</p>
       </Section>
 
       <Section title="Pesan WhatsApp" busy={busy} onSave={() => save('wa', 'Template WhatsApp disimpan')}>
-        <label className="mb-4 flex items-center gap-3 font-semibold"><input type="checkbox" className="h-6 w-6 accent-brand-600" checked={s.wa.autoSendFinished} onChange={(e) => up('wa', { autoSendFinished: e.target.checked })} /> Kirim otomatis saat status “Selesai”</label>
+        <label className="mb-5 flex items-center gap-3 font-semibold"><input type="checkbox" className="h-6 w-6 accent-brand-600" checked={s.wa.autoSendFinished} onChange={(e) => up('wa', { autoSendFinished: e.target.checked })} /> Kirim otomatis saat status “Selesai”</label>
         <p className="mb-1 text-sm text-slate-500">Kata yang otomatis terganti:</p>
-        <div className="mb-3 flex flex-wrap gap-1">{PLACEHOLDERS.map((p) => <code key={p} className="rounded bg-slate-100 px-2 py-1 text-xs">{p}</code>)}</div>
+        <div className="mb-4 flex flex-wrap gap-1">{PLACEHOLDERS.map((p) => <code key={p} className="rounded bg-slate-100 px-2 py-1 text-xs">{p}</code>)}</div>
         <Field label="Pesan cucian selesai"><textarea className="input min-h-40 py-3" value={s.wa.finishedTemplate} onChange={(e) => up('wa', { finishedTemplate: e.target.value })} /></Field>
         <Field label="Pesan hadiah FREE siap"><textarea className="input min-h-32 py-3" value={s.wa.freeReadyTemplate} onChange={(e) => up('wa', { freeReadyTemplate: e.target.value })} /></Field>
       </Section>

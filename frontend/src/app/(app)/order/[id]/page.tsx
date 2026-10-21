@@ -76,7 +76,7 @@ function Detail() {
       } />
 
       {isNew && (
-        <div className="mb-4 flex items-center gap-3 rounded-2xl border border-green-300 bg-green-50 p-3">
+        <div className="mb-5 flex items-center gap-3 rounded-2xl border border-green-300 bg-green-50 p-4">
           <span className="text-2xl">✅</span>
           <p className="flex-1 font-semibold text-green-800">Nota berhasil dibuat</p>
           <Link href={`/nota/${o.id}`}><Button size="sm" variant="success"><Printer className="h-4 w-4" /> Cetak</Button></Link>
@@ -84,7 +84,7 @@ function Detail() {
       )}
 
       {/* Customer + badge */}
-      <div className="card mb-3">
+      <div className="card mb-4">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <Link href={`/customer/${o.customer.id}`} className="block truncate text-xl font-extrabold hover:underline">{o.customer.name}</Link>
@@ -94,7 +94,7 @@ function Detail() {
             <a href={waLink(o.customer.phone, waText)} target="_blank" rel="noreferrer" aria-label="Chat WhatsApp" className="flex h-11 w-11 items-center justify-center rounded-full bg-green-100 text-green-700"><MessageCircle /></a>
           )}
         </div>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
+        <div className="mt-4 flex flex-wrap items-center gap-2">
           <StatusBadge status={o.status} />
           {!cancelled && <PayBadge status={o.paymentStatus} balance={o.balance} free={o.isFree && o.total === 0} />}
           {o.isFree && <span className="rounded-full bg-purple-100 px-2.5 py-1 text-xs font-bold text-purple-800">Nota FREE</span>}
@@ -103,7 +103,7 @@ function Detail() {
 
       {/* Progres status */}
       {!cancelled && (
-        <div className="card mb-3">
+        <div className="card mb-4">
           <ol className="flex items-start justify-between">
             {STEPS.map((st, i) => (
               <li key={st.s} className="flex flex-1 flex-col items-center text-center">
@@ -113,39 +113,39 @@ function Detail() {
               </li>
             ))}
           </ol>
-          {o.estimatedAt && idx < 2 && <p className="mt-3 text-center text-sm text-slate-500">Estimasi selesai: <b>{dateTimeFmt(o.estimatedAt)}</b></p>}
-          <AdvanceButton order={o} size="lg" onDone={reload} className="mt-3 w-full" />
+          {o.estimatedAt && idx < 2 && <p className="mt-4 text-center text-sm text-slate-500">Estimasi selesai: <b>{dateTimeFmt(o.estimatedAt)}</b></p>}
+          <AdvanceButton order={o} size="lg" onDone={reload} className="mt-4 w-full" />
         </div>
       )}
 
       {/* Rincian */}
-      <div className="card mb-3">
+      <div className="card mb-4">
         <h2 className="mb-2 font-bold">Rincian</h2>
         <ul className="divide-y divide-slate-100">
           {o.items.map((i) => (
-            <li key={i.id} className="flex items-center justify-between gap-3 py-2">
+            <li key={i.id} className="flex items-center justify-between gap-3 py-3">
               <div><p className="font-semibold">{i.code} <span className="font-normal text-slate-500">· {i.name}</span></p><p className="text-sm text-slate-500">{qtyLabel(i.qty, i.unit)} × {rupiah(i.unitPrice)}</p></div>
               <p className="whitespace-nowrap font-bold">{rupiah(i.subtotal)}</p>
             </li>
           ))}
         </ul>
-        <dl className="mt-2 space-y-1 border-t border-slate-200 pt-2 text-right">
+        <dl className="mt-2 space-y-2 border-t border-slate-200 pt-2 text-right">
           {o.discount > 0 && <div className="flex justify-between text-slate-600"><dt>Diskon</dt><dd>− {rupiah(o.discount)}</dd></div>}
           <div className="flex justify-between text-lg font-extrabold"><dt>Total</dt><dd>{rupiah(o.total)}</dd></div>
           <div className="flex justify-between text-slate-600"><dt>Sudah dibayar</dt><dd>{rupiah(o.paidAmount)}</dd></div>
           {!cancelled && o.balance > 0 && <div className="flex justify-between text-lg font-extrabold text-red-600"><dt>Sisa tagihan</dt><dd>{rupiah(o.balance)}</dd></div>}
         </dl>
-        {o.note && <p className="mt-3 rounded-lg bg-amber-50 p-2 text-sm text-amber-900">📝 {o.note}</p>}
+        {o.note && <p className="mt-4 rounded-lg bg-amber-50 p-2 text-sm text-amber-900">📝 {o.note}</p>}
       </div>
 
       {/* Pembayaran */}
       {!cancelled && (
-        <div className="card mb-3">
+        <div className="card mb-4">
           <h2 className="mb-2 font-bold">Pembayaran</h2>
-          {o.payments.length === 0 ? <p className="mb-3 text-slate-500">Belum ada pembayaran.</p> : (
-            <ul className="mb-3 divide-y divide-slate-100">
+          {o.payments.length === 0 ? <p className="mb-4 text-slate-500">Belum ada pembayaran.</p> : (
+            <ul className="mb-4 divide-y divide-slate-100">
               {o.payments.map((p) => (
-                <li key={p.id} className="flex items-center justify-between gap-2 py-2">
+                <li key={p.id} className="flex items-center justify-between gap-2 py-3">
                   <div className="flex items-center gap-2"><MethodBadge method={p.method} /><span className="text-sm text-slate-500">{dateTimeFmt(p.paidAt)} · {p.receivedBy.name}</span></div>
                   <div className="flex items-center gap-1">
                     <b>{rupiah(p.amount)}</b>
@@ -156,8 +156,8 @@ function Detail() {
             </ul>
           )}
           {o.balance > 0 && (
-            <div className="space-y-2">
-              <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
                 <Button variant="success" size="lg" loading={busy} onClick={() => payFull('CASH')}>Lunas Cash</Button>
                 <Button size="lg" loading={busy} className="bg-sky-600 hover:bg-sky-700" onClick={() => payFull('QRIS')}>Lunas QRIS</Button>
               </div>
@@ -169,7 +169,7 @@ function Detail() {
 
       {/* WhatsApp */}
       {lastWa && (
-        <div className="card mb-3">
+        <div className="card mb-4">
           <h2 className="mb-1 font-bold">Pesan WhatsApp</h2>
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm">
@@ -187,7 +187,7 @@ function Detail() {
       <PaySheet open={payOpen} onClose={() => setPayOpen(false)} order={o} onDone={() => { setPayOpen(false); reload(); }} />
       <DiscountSheet open={discOpen} onClose={() => setDiscOpen(false)} order={o} onDone={() => { setDiscOpen(false); reload(); }} />
       <Sheet open={menuOpen} onClose={() => setMenuOpen(false)} title="Lainnya">
-        <div className="space-y-2">
+        <div className="space-y-3">
           {!cancelled && !o.isFree && <Button variant="secondary" className="w-full justify-start" onClick={() => { setMenuOpen(false); setDiscOpen(true); }}><Pencil className="h-5 w-5" /> Diskon / catatan</Button>}
           {!cancelled && !o.isFree && <Button variant="secondary" className="w-full justify-start text-red-600" onClick={cancel}><Ban className="h-5 w-5" /> Batalkan nota</Button>}
           {isOwner && !o.isFree && <Button variant="secondary" className="w-full justify-start text-red-600" onClick={remove}><Trash2 className="h-5 w-5" /> Hapus nota (Owner)</Button>}
@@ -208,13 +208,13 @@ function PaySheet({ open, onClose, order, onDone }: { open: boolean; onClose: ()
   };
   return (
     <Sheet open={open} onClose={onClose} title="Bayar sebagian">
-      <p className="mb-3 text-slate-600">Sisa tagihan: <b className="text-red-600">{rupiah(order.balance)}</b></p>
-      <Segmented<PayMethod> className="mb-4" value={method} onChange={setMethod} options={[{ value: 'CASH', label: 'Cash' }, { value: 'QRIS', label: 'QRIS' }]} />
+      <p className="mb-4 text-slate-600">Sisa tagihan: <b className="text-red-600">{rupiah(order.balance)}</b></p>
+      <Segmented<PayMethod> className="mb-5" value={method} onChange={setMethod} options={[{ value: 'CASH', label: 'Cash' }, { value: 'QRIS', label: 'QRIS' }]} />
       <Field label="Nominal (Rp)">
         <input className="input text-xl font-bold" inputMode="numeric" value={n ? n.toLocaleString('id-ID') : ''} onChange={(e) => setAmount(e.target.value)} placeholder="0" autoFocus />
       </Field>
-      <div className="mb-4 flex gap-2">
-        {[0.5, 1].map((f) => <button key={f} onClick={() => setAmount(String(Math.round(order.balance * f)))} className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold">{f === 1 ? 'Semua sisa' : 'Setengah'}</button>)}
+      <div className="mb-5 flex gap-2">
+        {[0.5, 1].map((f) => <button key={f} onClick={() => setAmount(String(Math.round(order.balance * f)))} className="rounded-full border border-slate-300 px-4 py-3 text-sm font-semibold">{f === 1 ? 'Semua sisa' : 'Setengah'}</button>)}
       </div>
       <Button size="lg" className="w-full" loading={busy} disabled={n < 1 || n > order.balance} onClick={save}>Catat Pembayaran</Button>
     </Sheet>

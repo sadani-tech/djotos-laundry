@@ -47,7 +47,7 @@ export function AdvanceButton({ order, size = 'md', onDone, className }: { order
 export function OrderCard({ order, showDate }: { order: Order; showDate?: boolean }) {
   return (
     <div className="card p-0">
-      <Link href={`/order/${order.id}`} className="flex items-start gap-3 p-4">
+      <Link href={`/order/${order.id}`} className="flex items-start gap-4 p-5">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 text-xs text-slate-500">
             <span className="font-mono">{order.invoiceNo}</span>
@@ -69,7 +69,7 @@ export function OrderCard({ order, showDate }: { order: Order; showDate?: boolea
         </div>
       </Link>
       {NEXT_STATUS[order.status] && (
-        <div className="border-t border-slate-100 px-4 py-2">
+        <div className="border-t border-slate-100 px-5 py-3">
           <AdvanceButton order={order} size="sm" className="w-full" />
         </div>
       )}

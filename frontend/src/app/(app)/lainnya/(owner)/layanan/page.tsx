@@ -21,12 +21,12 @@ export default function ServicesPage() {
     <div>
       <PageHeader title="Layanan & Harga" back="/lainnya" right={<Button size="sm" onClick={() => setEdit('new')}><Plus className="h-4 w-4" /> Layanan</Button>} />
       {error ? <ErrorBox error={error} /> : !data ? <Spinner /> : (['REGULER', 'EXPRESS', 'SATUAN'] as const).map((cat) => (
-        <section key={cat} className="mb-5">
+        <section key={cat} className="mb-6">
           <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-slate-500">{CATEGORY_LABEL[cat]}</h2>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {data.filter((s) => s.category === cat).map((s) => (
-              <button key={s.id} onClick={() => setEdit(s)} className={`card flex w-full items-center gap-3 p-3 text-left ${s.isActive ? '' : 'opacity-50'}`}>
-                <span className="flex h-12 w-14 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-lg font-extrabold text-brand-700">{s.code}</span>
+              <button key={s.id} onClick={() => setEdit(s)} className={`card flex w-full items-center gap-4 p-4 text-left ${s.isActive ? '' : 'opacity-50'}`}>
+                <span className="flex h-12 min-w-16 shrink-0 items-center justify-center rounded-xl bg-brand-100 px-2 text-lg font-extrabold text-brand-700">{s.code}</span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-bold">{s.name}{!s.isActive && ' (nonaktif)'}</span>
                   <span className="block text-sm text-slate-500">{rupiah(s.rate)}/{s.unit === 'KG' ? 'kg' : 'pcs'}{s.minQty > 1 ? ` · min ${s.minQty}` : ''}{s.minPrice ? ` · min ${rupiah(s.minPrice)}` : ''} · {s.durationHours} jam{s.countsForFree ? ' · dihitung FREE' : ''}</span>
@@ -70,8 +70,8 @@ function ServiceSheet({ service, onClose, onDone }: { service: Service | null; o
         <Field label="Harga minimum (Rp)" hint="Kosongkan bila tidak ada. CK 3 kg = 16.000."><input className="input" inputMode="numeric" value={f.minPrice} onChange={(e) => set({ minPrice: e.target.value.replace(/\D/g, '') })} /></Field>
         <Field label="Estimasi (jam)"><input className="input" inputMode="numeric" value={f.durationHours} onChange={(e) => set({ durationHours: e.target.value.replace(/\D/g, '') })} /></Field>
       </div>
-      <label className="mb-3 flex items-center gap-3 font-semibold"><input type="checkbox" className="h-6 w-6 accent-brand-600" checked={f.countsForFree} onChange={(e) => set({ countsForFree: e.target.checked })} /> Dihitung untuk program FREE</label>
-      <label className="mb-5 flex items-center gap-3 font-semibold"><input type="checkbox" className="h-6 w-6 accent-brand-600" checked={f.isActive} onChange={(e) => set({ isActive: e.target.checked })} /> Aktif (tampil di order)</label>
+      <label className="mb-4 flex items-center gap-3 font-semibold"><input type="checkbox" className="h-6 w-6 accent-brand-600" checked={f.countsForFree} onChange={(e) => set({ countsForFree: e.target.checked })} /> Dihitung untuk program FREE</label>
+      <label className="mb-6 flex items-center gap-3 font-semibold"><input type="checkbox" className="h-6 w-6 accent-brand-600" checked={f.isActive} onChange={(e) => set({ isActive: e.target.checked })} /> Aktif (tampil di order)</label>
       <Button size="lg" className="w-full" loading={busy} disabled={!f.name || !f.rate || (!service && f.code.length < 2)} onClick={save}>Simpan</Button>
     </Sheet>
   );

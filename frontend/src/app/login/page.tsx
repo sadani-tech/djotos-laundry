@@ -23,9 +23,9 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-brand-50 to-white px-4">
-      <form onSubmit={submit} className="card w-full max-w-sm space-y-1 p-6">
+      <form onSubmit={submit} className="card w-full max-w-sm space-y-2 p-6">
         <div className="mb-6 text-center">
-          <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-600 text-3xl">🧺</div>
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-600 text-3xl">🧺</div>
           <h1 className="text-2xl font-extrabold text-brand-700">Djotos Laundry</h1>
           <p className="text-slate-500">Silakan masuk</p>
         </div>

@@ -21,9 +21,9 @@ export default function BonusRulesPage() {
   return (
     <div>
       <PageHeader title="Aturan Bonus" back="/lainnya" />
-      <p className="mb-4 rounded-xl bg-brand-50 p-3 text-sm text-brand-700">Bonus dihitung otomatis tiap bulan. Aturan yang aktif <b>dijumlahkan</b>. Bonus hanya cair jika target minimum bulan itu tercapai (isi 0 bila tanpa target).</p>
+      <p className="mb-5 rounded-xl bg-brand-50 p-4 text-sm text-brand-700">Bonus dihitung otomatis tiap bulan. Aturan yang aktif <b>dijumlahkan</b>. Bonus hanya cair jika target minimum bulan itu tercapai (isi 0 bila tanpa target).</p>
       {error ? <ErrorBox error={error} /> : !data ? <Spinner /> : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {rules.map((r, i) => (
             <div key={r.id ?? `n${i}`} className="card">
               <Field label="Nama aturan"><input className="input" value={r.name} onChange={(e) => set(i, { name: e.target.value })} /></Field>

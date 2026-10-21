@@ -20,7 +20,7 @@ export default function DailyRecapPage() {
         <button onClick={() => setDate(addDays(date, 1))} aria-label="Hari berikutnya" className="flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm"><ChevronRight /></button>
       </div>
       <p className="mt-2 text-center text-sm text-slate-500">{longDate(date)}</p>
-      <div className="mt-4 space-y-3">
+      <div className="mt-5 space-y-4">
         {error ? <ErrorBox error={error} retry={() => mutate()} /> : !data ? <Spinner /> : data.staff.length === 0 ? <Empty title="Belum ada cucian di tanggal ini" /> : data.staff.map((s) => (
           <div key={s.userId} className="card">
             <div className="mb-1 flex items-center justify-between">

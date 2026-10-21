@@ -19,9 +19,9 @@ export default function AuditPage() {
     <div>
       <PageHeader title="Riwayat Perubahan" back="/lainnya" />
       {error ? <ErrorBox error={error} /> : !data ? <Spinner /> : (
-        <ul className="space-y-2">
+        <ul className="space-y-3">
           {data.map((a) => (
-            <li key={a.id} className="card p-3">
+            <li key={a.id} className="card p-4">
               <div className="flex justify-between gap-2"><p className="font-bold">{LABEL[a.action] ?? a.action}</p><p className="shrink-0 text-xs text-slate-500">{dateTimeFmt(a.createdAt)}</p></div>
               <p className="text-sm text-slate-500">{a.user?.name ?? 'Sistem'} · {a.entity}{a.entityId ? ` #${a.entityId}` : ''}</p>
               {a.after != null && <details><summary className="cursor-pointer text-sm text-slate-500">Detail</summary><pre className="mt-1 overflow-x-auto rounded-lg bg-slate-100 p-2 text-xs">{JSON.stringify({ sebelum: a.before, sesudah: a.after }, null, 2)}</pre></details>}

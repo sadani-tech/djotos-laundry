@@ -45,30 +45,30 @@ export default function CustomerDetail() {
         </div>
       </div>
 
-      <div className="card mt-3">
+      <div className="card mt-4">
         <div className="mb-2 flex items-center justify-between">
           <p className="flex items-center gap-2 font-bold"><Gift className="h-5 w-5 text-purple-600" /> Progres FREE</p>
           <p className="font-extrabold">{c.free.count}/{c.free.threshold}</p>
         </div>
         <Progress value={c.free.count} max={c.free.threshold} />
         {c.free.eligible ? (
-          <Link href="/free"><Button variant="success" className="mt-3 w-full">Berhak cuci GRATIS — Klaim sekarang</Button></Link>
+          <Link href="/free"><Button variant="success" className="mt-4 w-full">Berhak cuci GRATIS — Klaim sekarang</Button></Link>
         ) : (
           <p className="mt-2 text-sm text-slate-500">Kurang {c.free.threshold - c.free.count} nota cuci (lunas) lagi untuk cuci gratis.{c.claims.length > 0 && ` Sudah klaim ${c.claims.length}×.`}</p>
         )}
       </div>
 
-      <div className="mt-3 grid grid-cols-2 gap-3">
+      <div className="mt-4 grid grid-cols-2 gap-3">
         <Link href={`/order/baru?customerId=${c.id}`}><Button className="w-full" size="lg"><Plus className="h-5 w-5" /> Order baru</Button></Link>
         {c.phone ? <a href={waLink(c.phone)} target="_blank" rel="noreferrer"><Button variant="secondary" size="lg" className="w-full"><MessageCircle className="h-5 w-5 text-green-600" /> WhatsApp</Button></a> : <Button variant="secondary" size="lg" disabled>Belum ada WA</Button>}
       </div>
 
       <h2 className="mb-2 mt-6 text-lg font-bold">Riwayat nota ({c.orders.length})</h2>
-      <div className="space-y-3">
+      <div className="space-y-4">
         {c.orders.length === 0 ? <p className="text-slate-500">Belum ada nota.</p> : c.orders.map((o) => <OrderCard key={o.id} order={o} showDate />)}
       </div>
-      {c.lastOrderAt && <p className="mt-4 text-center text-sm text-slate-400">Terakhir cuci: {dateFmt(c.lastOrderAt)}</p>}
-      {isOwner && <Button variant="ghost" className="mt-4 w-full text-red-600" onClick={remove}><Trash2 className="h-4 w-4" /> Hapus customer</Button>}
+      {c.lastOrderAt && <p className="mt-5 text-center text-sm text-slate-400">Terakhir cuci: {dateFmt(c.lastOrderAt)}</p>}
+      {isOwner && <Button variant="ghost" className="mt-5 w-full text-red-600" onClick={remove}><Trash2 className="h-4 w-4" /> Hapus customer</Button>}
 
       <EditCustomerSheet open={editing} onClose={() => setEditing(false)} customer={c} onSaved={() => { setEditing(false); mutate(); }} />
     </div>

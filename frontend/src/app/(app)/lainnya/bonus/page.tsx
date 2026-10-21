@@ -14,7 +14,7 @@ const currentMonth = () => new Date(Date.now() + 7 * 3600_000).toISOString().sli
 function Lines({ lines }: { lines: BonusLine[] }) {
   if (lines.length === 0) return <p className="text-sm text-slate-500">Belum ada aturan bonus yang aktif.</p>;
   return (
-    <ul className="space-y-3">
+    <ul className="space-y-4">
       {lines.map((l) => {
         const unit = (n: number) => (l.metric === 'KG' ? kg(n) : rupiah(n));
         return (
@@ -59,8 +59,8 @@ export default function BonusPage() {
       <PageHeader title={isOwner ? 'Bonus Staff' : 'Bonus Saya'} back="/lainnya" />
       <MonthNav value={period} onChange={setPeriod} />
       <p className="mt-2 text-center text-xs text-slate-500">Dihitung dari nota yang <b>sudah lunas</b>, tidak dibatalkan, dan bukan nota FREE.</p>
-      {err ? <div className="mt-4"><ErrorBox error={err} /></div> : (!mine.data && !all.data) ? <Spinner /> : (
-        <div className="mt-4 space-y-3">
+      {err ? <div className="mt-5"><ErrorBox error={err} /></div> : (!mine.data && !all.data) ? <Spinner /> : (
+        <div className="mt-5 space-y-4">
           {(isOwner ? all.data! : [mine.data!]).map((r) => (
             <div key={r.userId} className="card">
               <div className="flex items-start justify-between">
@@ -71,13 +71,13 @@ export default function BonusPage() {
                 {r.record?.status === 'PAID' && <span className="flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-1 text-xs font-bold text-green-800"><CheckCircle2 className="h-4 w-4" /> Dibayar {r.record.paidAt ? dateFmt(r.record.paidAt, { day: 'numeric', month: 'short' }) : ''}</span>}
                 {r.record?.status === 'DRAFT' && <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800">Tersimpan</span>}
               </div>
-              <div className="my-3 grid grid-cols-3 gap-2 text-center text-sm">
+              <div className="my-3 grid grid-cols-3 gap-3 text-center text-sm">
                 <div className="rounded-lg bg-slate-100 p-2"><p className="text-slate-500">Nota</p><p className="font-bold">{r.orderCount}</p></div>
                 <div className="rounded-lg bg-slate-100 p-2"><p className="text-slate-500">Cucian</p><p className="font-bold">{kg(r.totalKg)}</p></div>
                 <div className="rounded-lg bg-slate-100 p-2"><p className="text-slate-500">Omzet</p><p className="font-bold">{rupiah(r.omzet)}</p></div>
               </div>
               <Lines lines={r.lines} />
-              {isOwner && r.record?.status === 'DRAFT' && <Button className="mt-3 w-full" variant="success" onClick={() => pay(r)}>Tandai sudah dibayar</Button>}
+              {isOwner && r.record?.status === 'DRAFT' && <Button className="mt-4 w-full" variant="success" onClick={() => pay(r)}>Tandai sudah dibayar</Button>}
             </div>
           ))}
           {isOwner && <Button size="lg" variant="secondary" className="w-full" loading={busy} onClick={generate}>Simpan rekap bulan ini</Button>}

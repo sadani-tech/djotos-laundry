@@ -77,20 +77,20 @@ function NewOrder() {
       <PageHeader title="Order Baru" back="/" />
 
       {/* 1. Customer */}
-      <section className="mb-5">
+      <section className="mb-6">
         <h2 className="mb-2 font-bold">1. Siapa customernya?</h2>
         <CustomerPicker value={customer} onChange={setCustomer} />
       </section>
 
       {/* 2. Layanan */}
-      <section className="mb-5">
+      <section className="mb-6">
         <h2 className="mb-2 font-bold">2. Pilih layanan</h2>
         {!services.data ? <Spinner /> : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {groups.map(({ c, list }) => (
               <div key={c}>
                 <p className="mb-1 text-sm font-semibold text-slate-500">{CATEGORY_LABEL[c]}</p>
-                <div className="grid grid-cols-3 gap-2">{list.map((s) => <ServiceBtn key={s.id} s={s} />)}</div>
+                <div className="grid grid-cols-3 gap-3">{list.map((s) => <ServiceBtn key={s.id} s={s} />)}</div>
               </div>
             ))}
             {satuan.length > 0 && (
@@ -99,7 +99,7 @@ function NewOrder() {
                   {showSatuan ? '▾' : '▸'} Satuan (sprei, selimut, bed cover)
                 </button>
                 {(showSatuan || lines.some((l) => svcMap.get(l.serviceId)?.category === 'SATUAN')) && (
-                  <div className="grid grid-cols-3 gap-2">{satuan.map((s) => <ServiceBtn key={s.id} s={s} />)}</div>
+                  <div className="grid grid-cols-3 gap-3">{satuan.map((s) => <ServiceBtn key={s.id} s={s} />)}</div>
                 )}
               </div>
             )}
@@ -109,12 +109,12 @@ function NewOrder() {
 
       {/* 3. Berat */}
       {priced.length > 0 && (
-        <section className="mb-5">
+        <section className="mb-6">
           <h2 className="mb-2 font-bold">3. Berapa kg / pcs?</h2>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {priced.map((l) => (
               <div key={l.serviceId} className="card">
-                <div className="mb-3 flex items-start justify-between">
+                <div className="mb-4 flex items-start justify-between">
                   <div>
                     <p className="font-bold"><span className="mr-2 rounded-md bg-brand-100 px-2 py-0.5 text-brand-700">{l.svc.code}</span>{l.svc.name}</p>
                     <p className="text-sm text-slate-500">
@@ -125,7 +125,7 @@ function NewOrder() {
                   <button onClick={() => remove(l.serviceId)} aria-label="Hapus layanan" className="flex h-10 w-10 items-center justify-center rounded-full text-red-500 hover:bg-red-50"><Trash2 className="h-5 w-5" /></button>
                 </div>
                 {l.svc.unit === 'KG' && (
-                  <div className="-mx-1 mb-3 flex flex-wrap gap-2 px-1">
+                  <div className="-mx-1 mb-4 flex flex-wrap gap-2 px-1">
                     {[3, 4, 5, 6, 7, 8, 10, 12].map((n) => (
                       <Chip key={n} active={l.qty === n} onClick={() => setQty(l.serviceId, n)}>{n} kg</Chip>
                     ))}
@@ -143,7 +143,7 @@ function NewOrder() {
       )}
 
       {customer && customer.free.count > 0 && (
-        <div className={`mb-5 rounded-2xl border p-3 ${customer.free.eligible ? 'border-purple-300 bg-purple-50' : 'border-slate-200 bg-white'}`}>
+        <div className={`mb-6 rounded-2xl border p-4 ${customer.free.eligible ? 'border-purple-300 bg-purple-50' : 'border-slate-200 bg-white'}`}>
           <div className="mb-1 flex items-center gap-2 text-sm font-semibold">
             <Gift className="h-4 w-4 text-purple-600" /> Progres FREE: {customer.free.count}/{customer.free.threshold}
           </div>
@@ -159,13 +159,13 @@ function NewOrder() {
       )}
 
       {/* Ringkasan + simpan (menempel di bawah) */}
-      <div className="sticky bottom-20 z-10 -mx-4 mt-4 border-t border-slate-200 bg-white/95 p-4 shadow-[0_-4px_12px_rgba(0,0,0,0.06)] backdrop-blur md:bottom-0">
-        <div className="mb-3 flex items-end justify-between">
+      <div className="sticky bottom-20 z-10 bleed mt-6 border-t border-slate-200 bg-white/95 py-5 shadow-[0_-4px_12px_rgba(0,0,0,0.06)] backdrop-blur md:bottom-0">
+        <div className="mb-4 flex items-end justify-between">
           <span className="font-semibold text-slate-600">Total</span>
           <span className="text-3xl font-extrabold">{rupiah(total)}</span>
         </div>
         <Segmented<PayNow>
-          className="mb-3"
+          className="mb-4"
           value={payNow}
           onChange={setPayNow}
           options={[{ value: 'LATER', label: 'Bayar nanti' }, { value: 'CASH', label: 'Lunas Cash' }, { value: 'QRIS', label: 'Lunas QRIS' }]}
@@ -201,8 +201,8 @@ function CustomerPicker({ value, onChange }: { value: Customer | null; onChange:
         <Search className="pointer-events-none absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
         <input className="input pl-10" placeholder="Ketik nama atau no. WA…" value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
-      <div className="mt-2 space-y-2">
-        {!list.data ? <Spinner /> : list.data.slice(0, 6).map((c) => (
+      <div className="mt-2 space-y-3">
+        {!list.data ? <Spinner /> : list.data.slice(0, 5).map((c) => (
           <button key={c.id} onClick={() => onChange(c)} className="card flex w-full items-center justify-between text-left active:bg-slate-50">
             <span><span className="block font-bold">{c.name}</span><span className="text-sm text-slate-500">{phoneShow(c.phone)}</span></span>
             {c.unpaid > 0 && <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-bold text-red-700">Tagihan {rupiah(c.unpaid)}</span>}

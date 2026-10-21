@@ -10,9 +10,12 @@ input, select, textarea, button { font: inherit; }
 input, select, textarea { font-size: 16px; }
 
 @layer components {
-  .card { @apply rounded-2xl border border-slate-200 bg-white p-4 shadow-sm; }
-  .input { @apply min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 text-base placeholder:text-slate-400 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500/30 disabled:bg-slate-100; }
-  .label { @apply mb-1 block text-sm font-semibold text-slate-700; }
+  /* Skala jarak: tepi halaman 20px (24px di layar lebar), kartu p-5, antar kartu 16px. */
+  .card { @apply rounded-2xl border border-slate-200 bg-white p-5 shadow-sm; }
+  .input { @apply min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-base placeholder:text-slate-400 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500/30 disabled:bg-slate-100; }
+  .label { @apply mb-2 block text-sm font-semibold text-slate-700; }
+  /* Strip yang menempel ke tepi layar tapi isinya tetap sejajar dengan konten (chip yang bisa digeser, bar bawah) */
+  .bleed { @apply -mx-5 px-5 sm:-mx-6 sm:px-6; }
 }
 
 /* Cetak nota thermal 58 mm */

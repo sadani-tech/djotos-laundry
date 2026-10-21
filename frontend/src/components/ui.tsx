@@ -26,7 +26,7 @@ export function Button({ variant = 'primary', loading, className, children, disa
       disabled={disabled || loading}
       className={cx(
         'inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition disabled:cursor-not-allowed disabled:opacity-50',
-        size === 'sm' ? 'min-h-10 px-3 text-sm' : size === 'lg' ? 'min-h-14 px-5 text-lg' : 'min-h-12 px-4 text-base',
+        size === 'sm' ? 'min-h-10 px-3 text-sm' : size === 'lg' ? 'min-h-14 px-5 text-lg' : 'min-h-12 px-5 text-base',
         VARIANTS[variant],
         className,
       )}
@@ -72,7 +72,7 @@ export function MethodBadge({ method }: { method: 'CASH' | 'QRIS' }) {
 export function PageHeader({ title, back, right, subtitle }: { title: string; back?: string | boolean; right?: ReactNode; subtitle?: string }) {
   const router = useRouter();
   return (
-    <header className="sticky top-0 z-20 -mx-4 mb-4 flex items-center gap-2 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur">
+    <header className="sticky top-0 z-20 bleed mb-6 flex min-h-16 items-center gap-3 border-b border-slate-200 bg-white/95 py-3 backdrop-blur">
       {back && (
         typeof back === 'string' ? (
           <Link href={back} aria-label="Kembali" className="-ml-2 flex h-11 w-11 items-center justify-center rounded-full hover:bg-slate-100"><ChevronLeft /></Link>
@@ -121,7 +121,7 @@ export function ErrorBox({ error, retry }: { error: unknown; retry?: () => void 
 /** Pilihan satu dari beberapa (tab/chips) berukuran besar. */
 export function Segmented<T extends string>({ value, onChange, options, className }: { value: T; onChange: (v: T) => void; options: { value: T; label: string }[]; className?: string }) {
   return (
-    <div className={cx('flex gap-1 rounded-xl bg-slate-200/70 p-1', className)} role="tablist">
+    <div className={cx('flex gap-1.5 rounded-xl bg-slate-200/70 p-1.5', className)} role="tablist">
       {options.map((o) => (
         <button
           key={o.value}
@@ -198,8 +198,8 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
   if (!open) return null;
   return (
     <div className="no-print fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:items-center" onClick={onClose}>
-      <div role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()} className="max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-white p-5 pb-8 shadow-xl sm:max-w-md sm:rounded-3xl">
-        <div className="mb-4 flex items-center justify-between">
+      <div role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()} className="max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-white p-6 pb-10 shadow-xl sm:max-w-md sm:rounded-3xl">
+        <div className="mb-5 flex items-center justify-between">
           <h2 className="text-lg font-bold">{title}</h2>
           <button onClick={onClose} aria-label="Tutup" className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-slate-100"><X /></button>
         </div>
@@ -212,7 +212,7 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
 /** Label membungkus input, jadi mengetuk label memfokuskan input dan pembaca layar membacanya dengan benar. */
 export function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
   return (
-    <label className="mb-4 block">
+    <label className="mb-5 block">
       <span className="label">{label}</span>
       {children}
       {hint && <span className="mt-1 block text-sm text-slate-500">{hint}</span>}
@@ -251,7 +251,7 @@ export function UiProvider({ children }: { children: ReactNode }) {
       <ToastCtx.Provider value={toast}>
         {children}
         <Sheet open={!!dlg} onClose={() => close(false)} title={dlg?.title ?? ''}>
-          {dlg?.message && <div className="mb-5 text-slate-600">{dlg.message}</div>}
+          {dlg?.message && <div className="mb-6 text-slate-600">{dlg.message}</div>}
           <div className="flex gap-3">
             <Button variant="secondary" className="flex-1" onClick={() => close(false)}>Tidak</Button>
             <Button variant={dlg?.danger ? 'danger' : 'primary'} className="flex-1" onClick={() => close(true)}>{dlg?.confirmText ?? 'Ya, lanjut'}</Button>

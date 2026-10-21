@@ -41,7 +41,7 @@ export default function NotaPage() {
 
   return (
     <div className="min-h-screen bg-slate-100 p-4 print:bg-white print:p-0">
-      <div className="no-print mx-auto mb-4 flex max-w-sm items-center gap-2">
+      <div className="no-print mx-auto mb-5 flex max-w-sm items-center gap-2">
         <Link href={`/order/${o.id}`} aria-label="Kembali" className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow"><ArrowLeft /></Link>
         <Button className="flex-1" size="lg" onClick={() => window.print()}><Printer className="h-5 w-5" /> Cetak</Button>
         <Button variant="secondary" size="lg" onClick={share} aria-label="Bagikan"><Share2 className="h-5 w-5" /></Button>
