@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   applicationName: 'Djotos Laundry',
   appleWebApp: { capable: true, title: 'Djotos Laundry', statusBarStyle: 'default' },
 };
-export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#7c3aed' };
+export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#f8fafc' };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (

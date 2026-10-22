@@ -15,8 +15,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
   if (loading || !user) return <Spinner />;
   return (
-    <div className="min-h-screen md:pl-24">
-      <main className="mx-auto max-w-2xl px-5 pb-36 sm:px-6 md:max-w-3xl md:pb-16">{children}</main>
+    <div className="min-h-screen md:pl-28">
+      <main className="mx-auto w-full max-w-4xl px-4 pb-32 sm:px-6 md:pb-12">{children}</main>
       <BottomNav />
     </div>
   );

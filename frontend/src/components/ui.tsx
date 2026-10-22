@@ -9,13 +9,32 @@ import type { OrderStatus, PaymentStatus } from '@/lib/types';
 
 const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ');
 
+export function LogoMark({ size = 'md', className }: { size?: 'sm' | 'md' | 'lg'; className?: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cx(
+        'relative inline-flex shrink-0 items-center justify-center overflow-hidden bg-gradient-to-br from-brand-500 via-brand-600 to-brand-800 text-white shadow-lg shadow-brand-700/20',
+        size === 'sm' ? 'h-9 w-9 rounded-xl' : size === 'lg' ? 'h-20 w-20 rounded-[1.7rem]' : 'h-12 w-12 rounded-2xl',
+        className,
+      )}
+    >
+      <span className="absolute -right-2 -top-3 h-9 w-9 rounded-full border-[6px] border-white/15" />
+      <span className={cx('rounded-full border-[3px] border-white', size === 'lg' ? 'h-9 w-9' : 'h-6 w-6')}>
+        <span className="mt-1.5 block h-2/5 w-full rounded-b-full bg-white/80" />
+      </span>
+      <span className="absolute left-2.5 top-2.5 h-1.5 w-1.5 rounded-full bg-white/90" />
+    </span>
+  );
+}
+
 // ---------------------------------------------------------------- Tombol
 type Variant = 'primary' | 'secondary' | 'danger' | 'success' | 'ghost';
 const VARIANTS: Record<Variant, string> = {
-  primary: 'bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-700',
-  secondary: 'bg-white text-slate-800 border border-slate-300 hover:bg-slate-50',
-  danger: 'bg-red-600 text-white hover:bg-red-700',
-  success: 'bg-green-600 text-white hover:bg-green-700',
+  primary: 'bg-gradient-to-b from-brand-600 to-brand-700 text-white shadow-md shadow-brand-700/20 hover:from-brand-700 hover:to-brand-800',
+  secondary: 'border border-slate-300 bg-white text-slate-800 shadow-sm hover:border-slate-400 hover:bg-slate-50',
+  danger: 'bg-red-600 text-white shadow-md shadow-red-700/15 hover:bg-red-700',
+  success: 'bg-emerald-600 text-white shadow-md shadow-emerald-700/15 hover:bg-emerald-700',
   ghost: 'text-brand-700 hover:bg-brand-50',
 };
 
@@ -25,8 +44,8 @@ export function Button({ variant = 'primary', loading, className, children, disa
       {...p}
       disabled={disabled || loading}
       className={cx(
-        'inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition disabled:cursor-not-allowed disabled:opacity-50',
-        size === 'sm' ? 'min-h-10 px-3 text-sm' : size === 'lg' ? 'min-h-14 px-5 text-lg' : 'min-h-12 px-5 text-base',
+        'inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100',
+        size === 'sm' ? 'min-h-10 px-3 text-sm' : size === 'lg' ? 'min-h-14 px-5 text-lg' : 'min-h-12 px-4 text-base',
         VARIANTS[variant],
         className,
       )}
@@ -48,7 +67,7 @@ export const ORDER_STATUS: Record<OrderStatus, { label: string; cls: string }> =
 
 export function StatusBadge({ status }: { status: OrderStatus }) {
   const s = ORDER_STATUS[status];
-  return <span className={cx('inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold', s.cls)}>{s.label}</span>;
+  return <span className={cx('inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold', s.cls)}><span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />{s.label}</span>;
 }
 
 /** Hijau LUNAS · merah BELUM BAYAR · merah muda KURANG Rp x (bayar sebagian). */
@@ -72,16 +91,16 @@ export function MethodBadge({ method }: { method: 'CASH' | 'QRIS' }) {
 export function PageHeader({ title, back, right, subtitle }: { title: string; back?: string | boolean; right?: ReactNode; subtitle?: string }) {
   const router = useRouter();
   return (
-    <header className="sticky top-0 z-20 bleed mb-6 flex min-h-16 items-center gap-3 border-b border-slate-200 bg-white/95 py-3 backdrop-blur">
+    <header className="sticky top-0 z-20 -mx-4 mb-5 flex min-h-[4.5rem] items-center gap-2 border-b border-slate-200/70 bg-slate-50/90 px-4 py-3 backdrop-blur-xl sm:-mx-6 sm:px-6">
       {back && (
         typeof back === 'string' ? (
-          <Link href={back} aria-label="Kembali" className="-ml-2 flex h-11 w-11 items-center justify-center rounded-full hover:bg-slate-100"><ChevronLeft /></Link>
+          <Link href={back} aria-label="Kembali" className="-ml-2 flex h-11 w-11 items-center justify-center rounded-xl text-slate-600 transition hover:bg-white hover:text-slate-900 hover:shadow-sm"><ChevronLeft /></Link>
         ) : (
-          <button onClick={() => router.back()} aria-label="Kembali" className="-ml-2 flex h-11 w-11 items-center justify-center rounded-full hover:bg-slate-100"><ChevronLeft /></button>
+          <button onClick={() => router.back()} aria-label="Kembali" className="-ml-2 flex h-11 w-11 items-center justify-center rounded-xl text-slate-600 transition hover:bg-white hover:text-slate-900 hover:shadow-sm"><ChevronLeft /></button>
         )
       )}
       <div className="min-w-0 flex-1">
-        <h1 className="truncate text-xl font-bold">{title}</h1>
+        <h1 className="truncate text-xl font-extrabold tracking-tight text-slate-950">{title}</h1>
         {subtitle && <p className="truncate text-sm text-slate-500">{subtitle}</p>}
       </div>
       {right}
@@ -91,16 +110,16 @@ export function PageHeader({ title, back, right, subtitle }: { title: string; ba
 
 export function Spinner({ label = 'Memuat…' }: { label?: string }) {
   return (
-    <div className="flex items-center justify-center gap-2 py-10 text-slate-500">
-      <Loader2 className="h-5 w-5 animate-spin" /> {label}
+    <div className="flex items-center justify-center gap-2.5 py-12 text-sm font-medium text-slate-500" role="status">
+      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 text-brand-600"><Loader2 className="h-5 w-5 animate-spin" /></span> {label}
     </div>
   );
 }
 
 export function Empty({ icon, title, hint, action }: { icon?: ReactNode; title: string; hint?: string; action?: ReactNode }) {
   return (
-    <div className="flex flex-col items-center gap-2 py-12 text-center text-slate-500">
-      {icon && <div className="text-slate-300">{icon}</div>}
+    <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-white/60 px-5 py-12 text-center text-slate-500">
+      {icon && <div className="mb-1 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">{icon}</div>}
       <p className="font-semibold text-slate-700">{title}</p>
       {hint && <p className="max-w-xs text-sm">{hint}</p>}
       {action}
@@ -121,14 +140,14 @@ export function ErrorBox({ error, retry }: { error: unknown; retry?: () => void 
 /** Pilihan satu dari beberapa (tab/chips) berukuran besar. */
 export function Segmented<T extends string>({ value, onChange, options, className }: { value: T; onChange: (v: T) => void; options: { value: T; label: string }[]; className?: string }) {
   return (
-    <div className={cx('flex gap-1.5 rounded-xl bg-slate-200/70 p-1.5', className)} role="tablist">
+    <div className={cx('flex gap-1 rounded-xl bg-slate-200/80 p-1 shadow-inner', className)} role="tablist">
       {options.map((o) => (
         <button
           key={o.value}
           role="tab"
           aria-selected={o.value === value}
           onClick={() => onChange(o.value)}
-          className={cx('min-h-10 flex-1 rounded-lg px-3 text-sm font-semibold transition', o.value === value ? 'bg-white text-brand-700 shadow' : 'text-slate-600 hover:text-slate-900')}
+          className={cx('min-h-10 flex-1 rounded-lg px-3 text-sm font-semibold transition', o.value === value ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-600 hover:text-slate-900')}
         >
           {o.label}
         </button>
@@ -142,8 +161,8 @@ export function Chip({ active, children, onClick, tone = 'brand' }: { active?: b
     <button
       onClick={onClick}
       className={cx(
-        'min-h-10 shrink-0 rounded-full border px-4 text-sm font-semibold transition',
-        active ? (tone === 'red' ? 'border-red-600 bg-red-600 text-white' : 'border-brand-600 bg-brand-600 text-white') : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50',
+        'min-h-10 shrink-0 rounded-full border px-4 text-sm font-semibold transition active:scale-[0.98]',
+        active ? (tone === 'red' ? 'border-red-600 bg-red-600 text-white shadow-sm' : 'border-brand-600 bg-brand-600 text-white shadow-sm shadow-brand-700/15') : 'border-slate-300 bg-white text-slate-700 shadow-sm hover:border-slate-400 hover:bg-slate-50',
       )}
     >
       {children}
@@ -197,10 +216,11 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
   }, [open, onClose]);
   if (!open) return null;
   return (
-    <div className="no-print fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:items-center" onClick={onClose}>
-      <div role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()} className="max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-white p-6 pb-10 shadow-xl sm:max-w-md sm:rounded-3xl">
-        <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-lg font-bold">{title}</h2>
+    <div className="no-print fixed inset-0 z-50 flex items-end justify-center bg-slate-950/45 backdrop-blur-[2px] sm:items-center" onClick={onClose}>
+      <div role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()} className="animate-fade-up max-h-[92vh] w-full overflow-y-auto rounded-t-[1.75rem] bg-white p-5 pb-[max(2rem,env(safe-area-inset-bottom))] shadow-2xl sm:max-w-md sm:rounded-3xl sm:pb-6">
+        <div className="mx-auto -mt-2 mb-3 h-1 w-10 rounded-full bg-slate-200 sm:hidden" />
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-xl font-extrabold tracking-tight">{title}</h2>
           <button onClick={onClose} aria-label="Tutup" className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-slate-100"><X /></button>
         </div>
         {children}
@@ -212,7 +232,7 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
 /** Label membungkus input, jadi mengetuk label memfokuskan input dan pembaca layar membacanya dengan benar. */
 export function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
   return (
-    <label className="mb-5 block">
+    <label className="mb-4 block">
       <span className="label">{label}</span>
       {children}
       {hint && <span className="mt-1 block text-sm text-slate-500">{hint}</span>}
@@ -251,7 +271,7 @@ export function UiProvider({ children }: { children: ReactNode }) {
       <ToastCtx.Provider value={toast}>
         {children}
         <Sheet open={!!dlg} onClose={() => close(false)} title={dlg?.title ?? ''}>
-          {dlg?.message && <div className="mb-6 text-slate-600">{dlg.message}</div>}
+          {dlg?.message && <div className="mb-5 text-slate-600">{dlg.message}</div>}
           <div className="flex gap-3">
             <Button variant="secondary" className="flex-1" onClick={() => close(false)}>Tidak</Button>
             <Button variant={dlg?.danger ? 'danger' : 'primary'} className="flex-1" onClick={() => close(true)}>{dlg?.confirmText ?? 'Ya, lanjut'}</Button>
