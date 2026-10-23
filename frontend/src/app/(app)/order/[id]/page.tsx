@@ -97,7 +97,7 @@ function Detail() {
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <StatusBadge status={o.status} />
           {!cancelled && <PayBadge status={o.paymentStatus} balance={o.balance} free={o.isFree && o.total === 0} />}
-          {o.isFree && <span className="rounded-full bg-purple-100 px-2.5 py-1 text-xs font-bold text-purple-800">Nota FREE</span>}
+          {o.isFree && <span className="rounded-full bg-accent-100 px-2.5 py-1 text-xs font-bold text-accent-800">Nota FREE</span>}
         </div>
       </div>
 
@@ -121,7 +121,7 @@ function Detail() {
       {/* Rincian */}
       <div className="card mb-4">
         <h2 className="mb-2 font-bold">Rincian</h2>
-        <ul className="divide-y divide-slate-100">
+        <ul className="divide-y divide-line">
           {o.items.map((i) => (
             <li key={i.id} className="flex items-center justify-between gap-3 py-3">
               <div><p className="font-semibold">{i.code} <span className="font-normal text-slate-500">· {i.name}</span></p><p className="text-sm text-slate-500">{qtyLabel(i.qty, i.unit)} × {rupiah(i.unitPrice)}</p></div>
@@ -129,7 +129,7 @@ function Detail() {
             </li>
           ))}
         </ul>
-        <dl className="mt-2 space-y-2 border-t border-slate-200 pt-2 text-right">
+        <dl className="mt-2 space-y-2 border-t border-line pt-2 text-right">
           {o.discount > 0 && <div className="flex justify-between text-slate-600"><dt>Diskon</dt><dd>− {rupiah(o.discount)}</dd></div>}
           <div className="flex justify-between text-lg font-extrabold"><dt>Total</dt><dd>{rupiah(o.total)}</dd></div>
           <div className="flex justify-between text-slate-600"><dt>Sudah dibayar</dt><dd>{rupiah(o.paidAmount)}</dd></div>
@@ -143,7 +143,7 @@ function Detail() {
         <div className="card mb-4">
           <h2 className="mb-2 font-bold">Pembayaran</h2>
           {o.payments.length === 0 ? <p className="mb-4 text-slate-500">Belum ada pembayaran.</p> : (
-            <ul className="mb-4 divide-y divide-slate-100">
+            <ul className="mb-4 divide-y divide-line">
               {o.payments.map((p) => (
                 <li key={p.id} className="flex items-center justify-between gap-2 py-3">
                   <div className="flex items-center gap-2"><MethodBadge method={p.method} /><span className="text-sm text-slate-500">{dateTimeFmt(p.paidAt)} · {p.receivedBy.name}</span></div>

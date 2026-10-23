@@ -47,7 +47,7 @@ export default function CustomerDetail() {
 
       <div className="card mt-4">
         <div className="mb-2 flex items-center justify-between">
-          <p className="flex items-center gap-2 font-bold"><Gift className="h-5 w-5 text-purple-600" /> Progres FREE</p>
+          <p className="flex items-center gap-2 font-bold"><Gift className="h-5 w-5 text-accent-700" /> Progres FREE</p>
           <p className="font-extrabold">{c.free.count}/{c.free.threshold}</p>
         </div>
         <Progress value={c.free.count} max={c.free.threshold} />

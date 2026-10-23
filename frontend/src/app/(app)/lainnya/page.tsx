@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/auth';
 
 function Item({ href, icon, title, hint }: { href: string; icon: ReactNode; title: string; hint: string }) {
   return (
-    <Link href={href} className="card flex items-center gap-4 p-4 active:bg-slate-50">
+    <Link href={href} className="card flex items-center gap-4 p-4 active:bg-surface">
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-brand-700">{icon}</span>
       <span className="min-w-0 flex-1"><span className="block font-bold">{title}</span><span className="mt-0.5 block text-sm leading-snug text-slate-500">{hint}</span></span>
       <ChevronRight className="h-5 w-5 text-slate-300" />

@@ -47,7 +47,7 @@ export default function CustomerPage() {
         {error ? <ErrorBox error={error} retry={() => mutate()} /> : !data ? <Spinner /> : data.length === 0 ? (
           <Empty icon={<Users className="h-12 w-12" />} title={unpaid ? 'Tidak ada tagihan belum bayar 🎉' : 'Belum ada customer'} hint={unpaid ? undefined : 'Tekan tombol + untuk menambah customer.'} />
         ) : data.map((c) => (
-          <Link key={c.id} href={`/customer/${c.id}`} className="card block active:bg-slate-50">
+          <Link key={c.id} href={`/customer/${c.id}`} className="card block active:bg-surface">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="truncate text-lg font-bold">{c.name}</p>

@@ -62,12 +62,12 @@ function NewOrder() {
     return (
       <button
         onClick={() => addService(s)}
-        className={`relative flex min-h-20 flex-col items-center justify-center rounded-2xl border-2 p-2 transition active:scale-95 ${n ? 'border-brand-600 bg-brand-50' : 'border-slate-200 bg-white hover:border-brand-500'}`}
+        className={`relative flex min-h-20 flex-col items-center justify-center rounded-2xl border-2 p-2 transition active:scale-95 ${n ? 'border-brand-600 bg-brand-50' : 'border-line bg-white hover:border-brand-500'}`}
       >
         <span className="text-2xl font-extrabold text-brand-700">{s.code}</span>
         <span className="line-clamp-1 text-xs text-slate-500">{s.name.replace(/ \(.*\)/, '')}</span>
         <span className="text-xs font-semibold text-slate-700">{rupiah(s.rate)}/{s.unit === 'KG' ? 'kg' : 'pcs'}</span>
-        {n && <span className="absolute -right-1 -top-1 flex h-6 min-w-6 items-center justify-center rounded-full bg-brand-600 px-1 text-xs font-bold text-white">✓</span>}
+        {n && <span className="absolute -right-1 -top-1 flex h-6 min-w-6 items-center justify-center rounded-full bg-accent-500 px-1 text-xs font-extrabold text-ink shadow-sm">✓</span>}
       </button>
     );
   };
@@ -143,12 +143,12 @@ function NewOrder() {
       )}
 
       {customer && customer.free.count > 0 && (
-        <div className={`mb-6 rounded-2xl border p-4 ${customer.free.eligible ? 'border-purple-300 bg-purple-50' : 'border-slate-200 bg-white'}`}>
+        <div className={`mb-6 rounded-2xl border p-4 ${customer.free.eligible ? 'border-accent-300 bg-accent-50' : 'border-line bg-white'}`}>
           <div className="mb-1 flex items-center gap-2 text-sm font-semibold">
-            <Gift className="h-4 w-4 text-purple-600" /> Progres FREE: {customer.free.count}/{customer.free.threshold}
+            <Gift className="h-4 w-4 text-accent-700" /> Progres FREE: {customer.free.count}/{customer.free.threshold}
           </div>
           <Progress value={customer.free.count} max={customer.free.threshold} />
-          {customer.free.eligible && <p className="mt-1 text-sm font-semibold text-purple-700">Customer ini berhak cuci GRATIS — klaim di menu FREE.</p>}
+          {customer.free.eligible && <p className="mt-1 text-sm font-semibold text-accent-800">Customer ini berhak cuci GRATIS — klaim di menu FREE.</p>}
         </div>
       )}
 
@@ -159,7 +159,7 @@ function NewOrder() {
       )}
 
       {/* Ringkasan + simpan (menempel di bawah) */}
-      <div className="sticky bottom-20 z-10 bleed mt-6 border-t border-slate-200 bg-white/95 py-5 shadow-[0_-4px_12px_rgba(0,0,0,0.06)] backdrop-blur md:bottom-0">
+      <div className="sticky bottom-20 z-10 bleed mt-6 border-t border-line bg-white/95 py-5 shadow-[0_-4px_12px_rgba(0,0,0,0.06)] backdrop-blur md:bottom-0">
         <div className="mb-4 flex items-end justify-between">
           <span className="font-semibold text-slate-600">Total</span>
           <span className="text-3xl font-extrabold">{rupiah(total)}</span>
@@ -203,7 +203,7 @@ function CustomerPicker({ value, onChange }: { value: Customer | null; onChange:
       </div>
       <div className="mt-2 space-y-3">
         {!list.data ? <Spinner /> : list.data.slice(0, 5).map((c) => (
-          <button key={c.id} onClick={() => onChange(c)} className="card flex w-full items-center justify-between text-left active:bg-slate-50">
+          <button key={c.id} onClick={() => onChange(c)} className="card flex w-full items-center justify-between text-left active:bg-surface">
             <span><span className="block font-bold">{c.name}</span><span className="text-sm text-slate-500">{phoneShow(c.phone)}</span></span>
             {c.unpaid > 0 && <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-bold text-red-700">Tagihan {rupiah(c.unpaid)}</span>}
           </button>

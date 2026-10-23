@@ -12,11 +12,11 @@ const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).jo
 // ---------------------------------------------------------------- Tombol
 type Variant = 'primary' | 'secondary' | 'danger' | 'success' | 'ghost';
 const VARIANTS: Record<Variant, string> = {
-  primary: 'bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-700',
-  secondary: 'bg-white text-slate-800 border border-slate-300 hover:bg-slate-50',
-  danger: 'bg-red-600 text-white hover:bg-red-700',
-  success: 'bg-green-600 text-white hover:bg-green-700',
-  ghost: 'text-brand-700 hover:bg-brand-50',
+  primary: 'bg-brand-600 text-white shadow-sm hover:bg-brand-700 active:bg-brand-800',
+  secondary: 'border border-slate-300 bg-white text-ink hover:border-brand-300 hover:bg-brand-50 active:bg-brand-100',
+  danger: 'bg-red-600 text-white shadow-sm hover:bg-red-700 active:bg-red-800',
+  success: 'bg-green-600 text-white shadow-sm hover:bg-green-700 active:bg-green-800',
+  ghost: 'text-brand-700 hover:bg-brand-50 active:bg-brand-100',
 };
 
 export function Button({ variant = 'primary', loading, className, children, disabled, size = 'md', ...p }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; loading?: boolean; size?: 'sm' | 'md' | 'lg' }) {
@@ -53,7 +53,7 @@ export function StatusBadge({ status }: { status: OrderStatus }) {
 
 /** Hijau LUNAS · merah BELUM BAYAR · merah muda KURANG Rp x (bayar sebagian). */
 export function PayBadge({ status, balance, free }: { status: PaymentStatus; balance?: number; free?: boolean }) {
-  if (free) return <span className="inline-flex rounded-full bg-purple-100 px-2.5 py-1 text-xs font-bold text-purple-800">FREE</span>;
+  if (free) return <span className="inline-flex rounded-full bg-accent-100 px-2.5 py-1 text-xs font-bold text-accent-800">FREE</span>;
   if (status === 'PAID') return <span className="inline-flex rounded-full bg-green-100 px-2.5 py-1 text-xs font-bold text-green-800">LUNAS</span>;
   if (status === 'PARTIAL')
     return <span className="inline-flex rounded-full bg-red-100 px-2.5 py-1 text-xs font-bold text-red-700">KURANG {rupiah(balance)}</span>;
@@ -72,7 +72,7 @@ export function MethodBadge({ method }: { method: 'CASH' | 'QRIS' }) {
 export function PageHeader({ title, back, right, subtitle }: { title: string; back?: string | boolean; right?: ReactNode; subtitle?: string }) {
   const router = useRouter();
   return (
-    <header className="sticky top-0 z-20 bleed mb-6 flex min-h-16 items-center gap-3 border-b border-slate-200 bg-white/95 py-3 backdrop-blur">
+    <header className="sticky top-0 z-20 bleed mb-6 flex min-h-16 items-center gap-3 border-b border-line bg-white/95 py-3 backdrop-blur">
       {back && (
         typeof back === 'string' ? (
           <Link href={back} aria-label="Kembali" className="-ml-2 flex h-11 w-11 items-center justify-center rounded-full hover:bg-slate-100"><ChevronLeft /></Link>
@@ -198,7 +198,7 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
   if (!open) return null;
   return (
     <div className="no-print fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:items-center" onClick={onClose}>
-      <div role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()} className="max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-white p-6 pb-10 shadow-xl sm:max-w-md sm:rounded-3xl">
+      <div role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()} className="max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-white p-6 pb-10 shadow-pop sm:max-w-md sm:rounded-3xl">
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-lg font-bold">{title}</h2>
           <button onClick={onClose} aria-label="Tutup" className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-slate-100"><X /></button>

@@ -4,15 +4,19 @@
 
 :root { color-scheme: light; }
 html { -webkit-text-size-adjust: 100%; }
-body { @apply bg-slate-50 text-slate-900 antialiased; font-size: 16px; }
+body { @apply bg-surface text-ink antialiased; font-size: 16px; line-height: 1.5; }
+h1, h2, h3 { letter-spacing: -0.01em; }
 input, select, textarea, button { font: inherit; }
 /* Hindari zoom otomatis iOS pada input */
 input, select, textarea { font-size: 16px; }
+/* Fokus keyboard yang jelas di semua elemen interaktif */
+:focus-visible { outline: 2px solid theme('colors.brand.500'); outline-offset: 2px; }
+::selection { background: theme('colors.accent.200'); }
 
 @layer components {
   /* Skala jarak: tepi halaman 20px (24px di layar lebar), kartu p-5, antar kartu 16px. */
-  .card { @apply rounded-2xl border border-slate-200 bg-white p-5 shadow-sm; }
-  .input { @apply min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-base placeholder:text-slate-400 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500/30 disabled:bg-slate-100; }
+  .card { @apply rounded-card border border-line bg-white p-5 shadow-card; }
+  .input { @apply min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-2 text-base text-ink placeholder:text-slate-400 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500/25 disabled:bg-slate-100; }
   .label { @apply mb-2 block text-sm font-semibold text-slate-700; }
   /* Strip yang menempel ke tepi layar tapi isinya tetap sejajar dengan konten (chip yang bisa digeser, bar bawah) */
   .bleed { @apply -mx-5 px-5 sm:-mx-6 sm:px-6; }

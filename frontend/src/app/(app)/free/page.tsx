@@ -19,14 +19,14 @@ export default function FreePage() {
   return (
     <div>
       <PageHeader title="FREE" />
-      <div className="card border-purple-200 bg-purple-50">
-        <p className="flex items-center gap-2 font-bold text-purple-800"><Gift className="h-5 w-5" /> Kumpulkan {data?.threshold ?? 9} nota cuci → 1× cuci GRATIS</p>
-        <p className="mt-1 text-sm text-purple-900">Yang dihitung: nota cuci yang sudah <b>lunas</b> dan tidak dibatalkan. Gratis sampai {data ? kg(data.freeKg) : '3 kg'}; kelebihan berat dibayar biasa.</p>
+      <div className="card border-accent-200 bg-accent-50">
+        <p className="flex items-center gap-2 font-bold text-accent-800"><Gift className="h-5 w-5" /> Kumpulkan {data?.threshold ?? 9} nota cuci → 1× cuci GRATIS</p>
+        <p className="mt-1 text-sm text-accent-900">Yang dihitung: nota cuci yang sudah <b>lunas</b> dan tidak dibatalkan. Gratis sampai {data ? kg(data.freeKg) : '3 kg'}; kelebihan berat dibayar biasa.</p>
       </div>
 
       {error ? <div className="mt-5"><ErrorBox error={error} retry={() => mutate()} /></div> : !data ? <Spinner /> : (
         <>
-          <h2 className="mb-2 mt-6 flex items-center gap-2 text-lg font-bold"><PartyPopper className="h-5 w-5 text-purple-600" /> Siap klaim ({data.ready.length})</h2>
+          <h2 className="mb-2 mt-6 flex items-center gap-2 text-lg font-bold"><PartyPopper className="h-5 w-5 text-accent-700" /> Siap klaim ({data.ready.length})</h2>
           {data.ready.length === 0 ? <p className="rounded-xl bg-white p-4 text-center text-slate-500">Belum ada customer yang berhak klaim.</p> : (
             <div className="space-y-4">
               {data.ready.map((c) => (
@@ -60,7 +60,7 @@ export default function FreePage() {
       {!claims.data ? <Spinner /> : claims.data.length === 0 ? <p className="text-slate-500">Belum ada klaim.</p> : (
         <ul className="space-y-3">
           {claims.data.map((c) => (
-            <li key={c.id}><Link href={`/order/${c.order.id}`} className="card flex items-center justify-between p-4"><span><b>{c.customer.name}</b><span className="block text-sm text-slate-500">{c.order.invoiceNo} · {dateFmt(c.claimedAt)} · {c.claimedBy.name}</span></span><span className="rounded-full bg-purple-100 px-2.5 py-1 text-xs font-bold text-purple-800">{c.order.total === 0 ? 'FREE' : rupiah(c.order.total)}</span></Link></li>
+            <li key={c.id}><Link href={`/order/${c.order.id}`} className="card flex items-center justify-between p-4"><span><b>{c.customer.name}</b><span className="block text-sm text-slate-500">{c.order.invoiceNo} · {dateFmt(c.claimedAt)} · {c.claimedBy.name}</span></span><span className="rounded-full bg-accent-100 px-2.5 py-1 text-xs font-bold text-accent-800">{c.order.total === 0 ? 'FREE' : rupiah(c.order.total)}</span></Link></li>
           ))}
         </ul>
       )}
@@ -97,13 +97,13 @@ function ClaimSheet({ row, freeKg, onClose, onDone }: { row: FreeRow; freeKg: nu
         <>
           <p className="mb-2 font-semibold">Layanan cuci</p>
           <div className="mb-5 flex flex-wrap gap-2">
-            {kgServices.map((s) => <button key={s.id} onClick={() => setServiceId(s.id)} className={`min-h-12 rounded-xl border-2 px-4 font-bold ${svc?.id === s.id ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-slate-200'}`}>{s.code}</button>)}
+            {kgServices.map((s) => <button key={s.id} onClick={() => setServiceId(s.id)} className={`min-h-12 rounded-xl border-2 px-4 font-bold ${svc?.id === s.id ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-line'}`}>{s.code}</button>)}
           </div>
           <p className="mb-2 font-semibold">Berat cucian</p>
           <Stepper value={qty} onChange={setQty} step={0.5} min={0.5} unit="kg" />
           <div className="mt-5 space-y-2 rounded-xl bg-slate-100 p-4">
             <p className="flex justify-between"><span>Harga normal</span><span>{rupiah(price?.subtotal)}</span></p>
-            <p className="flex justify-between text-purple-700"><span>Potongan FREE (maks {kg(freeKg)})</span><span>− {rupiah(discount)}</span></p>
+            <p className="flex justify-between text-accent-800"><span>Potongan FREE (maks {kg(freeKg)})</span><span>− {rupiah(discount)}</span></p>
             <p className="flex justify-between text-lg font-extrabold"><span>Customer bayar</span><span>{rupiah(pay)}</span></p>
           </div>
           <Button size="lg" variant="success" className="mt-5 w-full" loading={busy} onClick={claim}>Klaim FREE</Button>

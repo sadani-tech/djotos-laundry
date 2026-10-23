@@ -22,21 +22,24 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-brand-50 to-white px-4">
-      <form onSubmit={submit} className="card w-full max-w-sm space-y-2 p-6">
-        <div className="mb-6 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-600 text-3xl">🧺</div>
-          <h1 className="text-2xl font-extrabold text-brand-700">Djotos Laundry</h1>
-          <p className="text-slate-500">Silakan masuk</p>
-        </div>
+    <main className="flex min-h-screen flex-col items-center justify-center bg-surface px-5 py-10">
+      <div className="mb-8 text-center">
+        {/* Logo asli, proporsi tidak diubah */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/brand/djotos-logo-640.png" alt="Djotos Laundry" width={640} height={707} className="mx-auto h-auto w-44 sm:w-52" />
+        <h1 className="sr-only">Djotos Laundry</h1>
+      </div>
+      <form onSubmit={submit} className="card w-full max-w-sm p-6 sm:p-8">
+        <p className="mb-6 text-center text-lg font-bold">Silakan masuk</p>
         <Field label="Username">
           <input className="input" autoCapitalize="none" autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="contoh: fani" required />
         </Field>
         <Field label="Password">
           <input className="input" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
         </Field>
-        <Button type="submit" size="lg" loading={busy} className="w-full">Masuk</Button>
+        <Button type="submit" size="lg" loading={busy} className="mt-2 w-full">Masuk</Button>
       </form>
+      <p className="mt-8 text-sm text-muted">Djotos Laundry</p>
     </main>
   );
 }

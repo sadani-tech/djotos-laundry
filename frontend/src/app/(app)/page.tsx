@@ -41,8 +41,8 @@ export default function OrderHome() {
 
       {/* 4 angka utama */}
       <div className="grid grid-cols-2 gap-4">
-        <button onClick={() => setFilter('today')} className="card flex min-h-32 flex-col justify-between text-left">
-          <p className="text-sm font-semibold text-slate-500">Order hari ini</p>
+        <button onClick={() => setFilter('today')} className="card flex min-h-32 flex-col justify-between border-brand-600 bg-brand-600 text-left text-white shadow-sm">
+          <p className="text-sm font-semibold text-brand-100">Order hari ini</p>
           <p className="text-4xl font-extrabold leading-none">{d?.ordersToday ?? '–'}</p>
         </button>
         <button onClick={() => setFilter('unpaid')} className="card flex min-h-32 flex-col justify-between border-red-200 bg-red-50 text-left">
