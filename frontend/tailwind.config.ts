@@ -26,13 +26,21 @@ const config: Config = {
         surface: '#f7f9fc',
       },
       fontFamily: {
-        sans: ['"Plus Jakarta Sans Variable"', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['"Plus Jakarta Sans Variable"', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
       },
       boxShadow: {
         card: '0 1px 2px rgba(23, 32, 51, 0.05)',
         pop: '0 8px 24px rgba(23, 32, 51, 0.12)',
+        float: '0 8px 28px rgba(0, 51, 160, 0.14)',
       },
       borderRadius: { card: '1rem' },
+      animation: { 'fade-up': 'fade-up .35s ease-out both' },
+      keyframes: {
+        'fade-up': {
+          '0%': { opacity: '0', transform: 'translateY(8px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
     },
   },
   plugins: [],

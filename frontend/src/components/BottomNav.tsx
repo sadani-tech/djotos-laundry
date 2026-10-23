@@ -2,6 +2,7 @@
 import { ClipboardList, Gift, Menu, Users, Wallet } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { LogoMark } from './ui';
 
 const ITEMS = [
   { href: '/', label: 'Order', icon: ClipboardList, match: (p: string) => p === '/' || p.startsWith('/order') },
@@ -15,22 +16,26 @@ const ITEMS = [
 export default function BottomNav() {
   const path = usePathname();
   return (
-    <nav aria-label="Menu utama" className="no-print fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_12px_rgba(23,32,51,0.05)] md:inset-y-0 md:right-auto md:w-24 md:border-r md:border-t-0 md:shadow-none">
-      <ul className="mx-auto flex max-w-xl md:h-full md:flex-col md:justify-start md:gap-2 md:pt-6">
+    <nav aria-label="Menu utama" className="no-print fixed inset-x-3 bottom-3 z-30 rounded-[1.4rem] border border-white/80 bg-white/95 px-1 pb-[env(safe-area-inset-bottom)] shadow-float backdrop-blur-xl md:inset-y-0 md:left-0 md:right-auto md:bottom-0 md:w-28 md:rounded-none md:border-y-0 md:border-l-0 md:border-r md:border-line/80 md:bg-white/90 md:px-3 md:shadow-none">
+      <div className="hidden flex-col items-center gap-2 border-b border-slate-100 py-5 md:flex">
+        <LogoMark />
+        <span className="text-xs font-extrabold tracking-tight text-slate-800">DJOTOS</span>
+      </div>
+      <ul className="mx-auto flex max-w-xl md:h-auto md:flex-col md:gap-1.5 md:pt-4">
         {ITEMS.map(({ href, label, icon: Icon, match }) => {
           const active = match(path);
           return (
-            <li key={href} className="relative flex-1 md:flex-none">
-              {active && <span aria-hidden className="absolute left-1/2 top-0 h-[3px] w-10 -translate-x-1/2 rounded-b-full bg-accent-500 md:left-0 md:top-1/2 md:h-10 md:w-[3px] md:-translate-y-1/2 md:translate-x-0 md:rounded-b-none md:rounded-r-full" />}
+            <li key={href} className="flex-1 md:flex-none">
               <Link
                 href={href}
                 aria-current={active ? 'page' : undefined}
-                className={`flex min-h-16 flex-col items-center justify-center gap-0.5 text-xs font-semibold ${active ? 'text-brand-700' : 'text-slate-500 hover:text-brand-600'}`}
+                className={`group relative flex min-h-[4.15rem] flex-col items-center justify-center gap-0.5 rounded-2xl text-[11px] font-bold transition md:min-h-[4.5rem] md:text-xs ${active ? 'text-brand-700' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}
               >
-                <span className={`flex h-8 w-14 items-center justify-center rounded-full ${active ? 'bg-brand-600 text-white' : ''}`}>
-                  <Icon className="h-6 w-6" strokeWidth={active ? 2.4 : 2} />
+                <span className={`flex h-8 w-12 items-center justify-center rounded-xl transition ${active ? 'bg-brand-100' : 'group-hover:bg-white'}`}>
+                  <Icon className="h-[1.35rem] w-[1.35rem]" strokeWidth={active ? 2.5 : 2} />
                 </span>
                 {label}
+                {active && <span className="absolute -bottom-px h-1 w-5 rounded-full bg-accent-500 md:bottom-auto md:left-0 md:h-6 md:w-1" />}
               </Link>
             </li>
           );

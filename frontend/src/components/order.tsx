@@ -46,33 +46,33 @@ export function AdvanceButton({ order, size = 'md', onDone, className }: { order
 
 export function OrderCard({ order, showDate }: { order: Order; showDate?: boolean }) {
   return (
-    <div className="card p-0">
-      <Link href={`/order/${order.id}`} className="flex items-start gap-4 p-5">
+    <article className="card overflow-hidden p-0 transition duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg">
+      <Link href={`/order/${order.id}`} className="flex items-start gap-3 p-4 active:bg-surface">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            <span className="font-mono">{order.invoiceNo}</span>
+          <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
+            <span className="rounded-md bg-slate-100 px-1.5 py-0.5 font-mono font-bold text-slate-600">{order.invoiceNo}</span>
             <span>·</span>
             <span>{showDate ? dateFmt(order.receivedAt, { day: 'numeric', month: 'short' }) + ' ' : ''}{timeFmt(order.receivedAt)}</span>
             <span>·</span>
             <span className="truncate">{order.staff.name}</span>
           </div>
-          <p className="mt-0.5 truncate text-lg font-bold">{order.customer.name}</p>
-          <p className="truncate text-sm text-slate-600">{order.summary}{order.kg > 0 && order.items.length > 1 ? ` · ${kg(order.kg)}` : ''}</p>
-          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <p className="mt-2 truncate text-lg font-extrabold tracking-tight text-slate-950">{order.customer.name}</p>
+          <p className="mt-0.5 truncate text-sm text-slate-500">{order.summary}{order.kg > 0 && order.items.length > 1 ? ` · ${kg(order.kg)}` : ''}</p>
+          <div className="mt-3 flex flex-wrap items-center gap-1.5">
             <StatusBadge status={order.status} />
             {order.status !== 'CANCELLED' && <PayBadge status={order.paymentStatus} balance={order.balance} free={order.isFree && order.total === 0} />}
           </div>
         </div>
-        <div className="flex flex-col items-end gap-1">
-          <p className="whitespace-nowrap text-lg font-extrabold">{order.isFree && order.total === 0 ? 'FREE' : rupiah(order.total)}</p>
-          <ChevronRight className="h-5 w-5 text-slate-300" />
+        <div className="flex shrink-0 flex-col items-end gap-2 pl-1">
+          <p className="whitespace-nowrap text-base font-extrabold text-slate-950 sm:text-lg">{order.isFree && order.total === 0 ? 'FREE' : rupiah(order.total)}</p>
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100"><ChevronRight className="h-4 w-4 text-slate-400" /></span>
         </div>
       </Link>
       {NEXT_STATUS[order.status] && (
-        <div className="border-t border-slate-100 px-5 py-3">
+        <div className="border-t border-slate-100 bg-surface/50 px-4 py-2.5">
           <AdvanceButton order={order} size="sm" className="w-full" />
         </div>
       )}
-    </div>
+    </article>
   );
 }
