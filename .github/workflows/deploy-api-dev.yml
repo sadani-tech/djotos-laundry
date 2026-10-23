@@ -1,0 +1,95 @@
+# =================================================================
+# Deploy backend Djotos Laundry ke environment DEVELOPMENT.
+# Trigger: manual (tab Actions -> Run workflow).
+#
+# Secret GitHub Actions yang dibutuhkan:
+#   DOCKER_USERNAME       username Docker Hub (suryaajis)
+#   DOCKER_PASSWORD       access token Docker Hub (bukan password akun)
+#   VPS_HOST              IP VPS SumoPod (43.173.19.19)
+#   VPS_USER              user SSH (ubuntu)
+#   VPS_SSH_PRIVATE_KEY   private key SSH user tersebut
+#
+# Di VPS: /home/ops/development/djotos/api/docker-compose.yml menarik
+#   ${DOCKER_USERNAME}/djotos-api-dev:latest  (container: djotos-api-dev)
+# Redis (djotos-redis-dev) ikut di compose yang sama dan tidak perlu di-deploy
+# ulang. Migrasi Prisma + seed idempotent jalan otomatis dari CMD image, jadi
+# tidak ada workflow migrate terpisah.
+# =================================================================
+
+name: Deploy API Development - Djotos
+
+on: workflow_dispatch
+
+concurrency:
+  group: deploy-djotos-dev
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 5
+
+      - name: Get commit info
+        id: commit
+        run: |
+          echo "sha=$(git log -1 --pretty=format:%h)" >> "$GITHUB_OUTPUT"
+          echo "message=$(git log -1 --pretty=format:%s)" >> "$GITHUB_OUTPUT"
+          echo "author=$(git log -1 --pretty=format:%an)" >> "$GITHUB_OUTPUT"
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        run: |
+          IMAGE="${{ secrets.DOCKER_USERNAME }}/djotos-api-dev"
+          docker build -t "$IMAGE:latest" -t "$IMAGE:${{ github.sha }}" ./backend
+          docker push "$IMAGE:latest"
+          docker push "$IMAGE:${{ github.sha }}"
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+
+      - name: Deploy to VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          ssh -o StrictHostKeyChecking=no "$VPS_USER@$VPS_HOST" << 'REMOTE'
+            set -e
+            cd /home/ops/development/djotos/api
+            docker compose pull djotos-api-dev
+            docker compose up -d djotos-redis-dev
+            docker compose up -d --force-recreate djotos-api-dev
+            docker image prune -f
+            docker compose ps
+            echo "Menunggu API siap (migrasi Prisma + seed jalan dulu)..."
+            ok=0
+            for i in $(seq 1 24); do
+              # /api/auth/me dilindungi guard: 401 = aplikasi hidup & guard bekerja.
+              status=$(docker exec djotos-api-dev node -e \
+                "fetch('http://127.0.0.1:3000/api/auth/me').then(r=>console.log(r.status)).catch(()=>console.log('down'))" 2>/dev/null || true)
+              if [ "$status" = "401" ]; then
+                ok=1
+                echo "Health check OK (percobaan $i, status 401)"
+                break
+              fi
+              sleep 5
+            done
+            if [ "$ok" -ne 1 ]; then
+              echo "Health check gagal setelah sekitar 120 detik"
+              docker compose ps -a
+              docker compose logs --tail=100 djotos-api-dev
+              exit 1
+            fi
+            echo "Deploy selesai: $(date)"
+          REMOTE
