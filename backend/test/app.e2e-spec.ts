@@ -559,7 +559,7 @@ describe('Djotos Laundry API', () => {
       expect(own.staff[0].items[0]).toHaveProperty('kg');
     });
 
-    it('performa & rekap harian memisahkan kg cuci, setrika, dan cuci+setrika', async () => {
+    it('performa & rekap harian: kg Cuci dan kg Setrika; layanan cuci+setrika masuk ke keduanya', async () => {
       await owner.post('/users', { name: 'Dewi', username: 'dewi', password: 'dewi1234' }).expect(201);
       const dewi = makeApi(app, (await login(app, 'dewi', 'dewi1234')).token);
       const cust = (await dewi.post('/customers', { name: 'Uji Jenis Kerja' }).expect(201)).body.id;
@@ -574,11 +574,12 @@ describe('Djotos Laundry API', () => {
       expect(o.body.items.map((i: any) => i.workType)).toEqual(['WASH', 'WASH', 'IRON', 'WASH_IRON', 'WASH_IRON', 'OTHER']);
 
       const perf = (await owner.get(`/staff/performance?period=${period}`)).body.find((x: any) => x.name === 'Dewi');
-      expect(perf).toMatchObject({ kg: 20, kgWash: 7, kgIron: 5, kgWashIron: 8 });
-      expect(perf.kgWash + perf.kgIron + perf.kgWashIron).toBe(perf.kg); // tidak ada hitung ganda
+      // Cuci = CB 4 + CBX 3 + CK 6 + CKX 2 = 15 ; Setrika = ST 5 + CK 6 + CKX 2 = 13 ; total kg unik = 20
+      expect(perf).toMatchObject({ kg: 20, kgWash: 15, kgIron: 13 });
+      expect(perf).not.toHaveProperty('kgWashIron');
 
       const rec = (await dewi.get('/staff/daily-recap')).body.staff[0];
-      expect(rec).toMatchObject({ name: 'Dewi', totalKg: 20, kgWash: 7, kgIron: 5, kgWashIron: 8 });
+      expect(rec).toMatchObject({ name: 'Dewi', totalKg: 20, kgWash: 15, kgIron: 13 });
     });
 
     it('jenis kerja tersimpan pada nota (snapshot): mengubah layanan tidak mengubah nota lama', async () => {

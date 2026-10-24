@@ -70,7 +70,7 @@ function ServiceSheet({ service, onClose, onDone }: { service: Service | null; o
         <Field label="Harga minimum (Rp)" hint="Kosongkan bila tidak ada. CK 3 kg = 16.000."><input className="input" inputMode="numeric" value={f.minPrice} onChange={(e) => set({ minPrice: e.target.value.replace(/\D/g, '') })} /></Field>
       </div>
       {f.unit === 'KG' && (
-        <Field label="Jenis kerja" hint="Dipakai untuk memisahkan kg cuci dan kg setrika di Staff & Performa.">
+        <Field label="Jenis kerja" hint="Menentukan masuk ke kolom Cuci, Setrika, atau keduanya di Staff & Performa.">
           <select className="input" value={f.workType} onChange={(e) => set({ workType: e.target.value as WorkType })}>
             <option value="WASH">Cuci saja</option>
             <option value="IRON">Setrika saja</option>

@@ -59,7 +59,7 @@ erDiagram
 | Bonus | `GET /bonus/rules` · `PUT /bonus/rules` **O** | aturan |
 | | `GET /bonus/me?period=YYYY-MM` | Bonus Saya |
 | | `GET /bonus/summary?period` **O** · `POST /bonus/records/generate` **O** · `PATCH /bonus/records/:id/pay` **O** | |
-| Staff perf | `GET /staff/performance?period` **O** · `GET /staff/daily-recap?date` | omzet, nota, kg (dipisah cuci / setrika / cuci+setrika) · rincian harian |
+| Staff perf | `GET /staff/performance?period` **O** · `GET /staff/daily-recap?date` | omzet, nota, kg (kolom Cuci dan Setrika; cuci+setrika masuk keduanya) · rincian harian |
 | WA | `GET /wa/logs` · `POST /wa/logs/:id/resend` · `POST /wa/test` **O** · `GET /wa/status` | |
 | Pengaturan | `GET /settings` · `PUT /settings` **O** | template WA, toko, FREE |
 | Audit | `GET /audit` **O** | riwayat perubahan |

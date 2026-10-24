@@ -22,7 +22,7 @@
 
 ## Jenis kerja & performa staff
 Tiap layanan per kg punya **jenis kerja**: **Cuci** (CB, CBX), **Setrika** (ST, STX), atau **Cuci + Setrika** sekaligus (CK, CKX); satuan = Lainnya. Jenis kerja disalin ke item nota saat nota dibuat, jadi mengubah layanan tidak mengubah nota lama.
-Di **Staff & Performa** dan **Rekap Harian**, kg dipisah menjadi tiga kolom (Cuci / Setrika / Cuci + Setrika) atas nama **staff yang menginput nota**. Ketiganya dijumlahkan = total kg (tidak ada hitung ganda). Alur status nota tidak berubah.
+Di **Staff & Performa** dan **Rekap Harian**, kg dipisah menjadi dua kolom, **Cuci** dan **Setrika**, atas nama **staff yang menginput nota**. Layanan cuci saja masuk ke Cuci, setrika saja masuk ke Setrika, dan layanan cuci + setrika (CK, CKX) **menambah kedua kolom sekaligus**, jadi Cuci + Setrika bisa lebih besar dari total kg. Alur status nota tidak berubah.
 Estimasi jam/hari selesai **tidak dipakai** (dihapus dari order dan dari data layanan).
 
 ## Rumus harga
