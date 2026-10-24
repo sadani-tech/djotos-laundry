@@ -18,7 +18,7 @@ export default function FreePage() {
 
   return (
     <div>
-      <PageHeader title="FREE" />
+      <PageHeader title="FREE" back="/lainnya" />
       <div className="card border-accent-200 bg-accent-50">
         <p className="flex items-center gap-2 font-bold text-accent-800"><Gift className="h-5 w-5" /> Kumpulkan {data?.threshold ?? 9} nota cuci → 1× cuci GRATIS</p>
         <p className="mt-1 text-sm text-accent-900">Yang dihitung: nota cuci yang sudah <b>lunas</b> dan tidak dibatalkan. Gratis sampai {data ? kg(data.freeKg) : '3 kg'}; kelebihan berat dibayar biasa.</p>

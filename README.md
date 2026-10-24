@@ -79,7 +79,7 @@ Database test dibuat dengan: `createdb djotos_test` (atau atur `TEST_DATABASE_UR
 | Rekapan customer + Excel | tab **Customer** |
 | Akun staff masing-masing, performa | **Lainnya → Staff & Performa** |
 | Bonus staff | **Bonus Saya** / **Bonus Staff** / **Aturan Bonus** |
-| FREE 9× cuci → 1× gratis | tab **FREE** |
+| FREE 9× cuci → 1× gratis | **Lainnya → Program FREE** |
 
 ## Keamanan & operasional (catatan)
 - Password disimpan ter-hash (bcrypt); token JWT berlaku 14 hari. Belum ada pembatasan percobaan login — pasang di belakang reverse proxy/WAF bila dibuka ke internet.
