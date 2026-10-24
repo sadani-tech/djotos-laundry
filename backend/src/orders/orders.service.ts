@@ -70,7 +70,6 @@ export class OrdersService {
     const total = subtotal - discount;
 
     const now = new Date();
-    const maxHours = Math.max(...lines.map((l) => l.svc.durationHours));
     const order = await db.order.create({
       data: {
         invoiceNo: await this.nextInvoiceNo(db),
@@ -83,7 +82,6 @@ export class OrdersService {
         countsForFree: !input.isFree && lines.some((l) => l.svc.countsForFree),
         note: input.note?.trim() || null,
         receivedAt: now,
-        estimatedAt: new Date(now.getTime() + maxHours * 3600_000),
         paymentStatus: total === 0 ? PaymentStatus.PAID : PaymentStatus.UNPAID,
         items: {
           create: lines.map((l) => ({
@@ -91,6 +89,7 @@ export class OrdersService {
             code: l.svc.code,
             name: l.svc.name,
             unit: l.svc.unit,
+            workType: l.svc.workType,
             qty: l.qty,
             unitPrice: l.unitPrice,
             subtotal: l.subtotal,
@@ -103,7 +102,7 @@ export class OrdersService {
   }
 
   async create(dto: CreateOrderDto, user: AuthUser) {
-    const result = await this.prisma.$transaction(async (tx) => {
+    const order = await this.prisma.$transaction(async (tx) => {
       const order = await this.createInTx(tx, {
         customerId: dto.customerId,
         staffId: user.id,
@@ -112,15 +111,12 @@ export class OrdersService {
         note: dto.note,
       });
       // Bayar langsung saat input nota (opsional): tanpa nominal = lunas.
-      let becamePaid = false;
       if (dto.payment && order.total > 0) {
-        const r = await this.payments.addInTx(tx, order.id, { method: dto.payment.method, amount: dto.payment.amount ?? order.total }, user.id);
-        becamePaid = r.becamePaid;
+        await this.payments.addInTx(tx, order.id, { method: dto.payment.method, amount: dto.payment.amount ?? order.total }, user.id);
       }
-      return { order, becamePaid };
+      return order;
     });
-    if (result.becamePaid) await this.loyalty.onOrderPaid(result.order);
-    return this.get(result.order.id, user);
+    return this.get(order.id, user);
   }
 
   // ---------- Baca ----------
@@ -129,7 +125,8 @@ export class OrdersService {
     const order = await this.prisma.order.findFirst({ where: { id, deletedAt: null }, include: ORDER_INCLUDE });
     if (!order) throw notFound('Nota');
     const waLogs = await this.prisma.waLog.findMany({ where: { orderId: id }, orderBy: { id: 'desc' }, take: 5 });
-    return { ...orderView(order), waLogs };
+    const [withFree] = await this.loyalty.withFreeAvailable([orderView(order)]);
+    return { ...withFree, waLogs };
   }
 
   async list(user: AuthUser, q: { date?: string; status?: string; payment?: string; q?: string; mine?: boolean; customerId?: number; limit?: number }) {
@@ -157,7 +154,7 @@ export class OrdersService {
       ];
     }
     const rows = await this.prisma.order.findMany({ where, orderBy: { id: 'desc' }, take: Math.min(q.limit ?? 100, 300), include: ORDER_INCLUDE });
-    return rows.map(orderView);
+    return this.loyalty.withFreeAvailable(rows.map(orderView));
   }
 
   // ---------- Ubah ----------
@@ -193,7 +190,6 @@ export class OrdersService {
     if (!order) throw notFound('Nota');
     if (order.status === OrderStatus.CANCELLED) throw bad('Nota sudah dibatalkan');
     const data: Prisma.OrderUpdateInput = {};
-    let becamePaid = false;
     if (dto.note !== undefined) data.note = dto.note.trim() || null;
     if (dto.discount !== undefined) {
       if (order.isFree) throw bad('Nota FREE tidak bisa diberi diskon');
@@ -203,13 +199,11 @@ export class OrdersService {
       data.discount = dto.discount;
       data.total = total;
       data.paymentStatus = paymentStatusOf(total, order.paidAmount);
-      becamePaid = data.paymentStatus === PaymentStatus.PAID && order.paymentStatus !== PaymentStatus.PAID;
     }
     await this.prisma.$transaction(async (tx) => {
       await tx.order.update({ where: { id }, data });
       await this.audit.log({ userId: user.id, action: 'ORDER_UPDATE', entity: 'Order', entityId: id, before: { note: order.note, discount: order.discount }, after: dto }, tx);
     });
-    if (becamePaid) await this.loyalty.onOrderPaid(order);
     return this.get(id);
   }
 

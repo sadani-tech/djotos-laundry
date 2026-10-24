@@ -123,15 +123,4 @@ export class WaService {
     });
     return this.enqueue({ phone: order.customer.phone, message, type: WaType.FINISHED, orderId, customerId: order.customerId });
   }
-
-  async notifyFreeReady(customer: { id: number; name: string; phone: string | null }, threshold: number) {
-    const cfg = await this.settings.get();
-    if (!cfg.free.notifyReady) return null;
-    const message = renderTemplate(cfg.wa.freeReadyTemplate, {
-      nama: customer.name,
-      toko: cfg.shop.name,
-      progres: `${threshold}/${threshold}`,
-    });
-    return this.enqueue({ phone: customer.phone, message, type: WaType.FREE_READY, customerId: customer.id });
-  }
 }

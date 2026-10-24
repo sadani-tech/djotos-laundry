@@ -12,6 +12,10 @@ export interface StaffStats {
   omzet: number; // total semua nota (tidak batal)
   unpaid: number;
   kg: number;
+  // kg per jenis kerja (hanya layanan per kg): cuci saja, setrika saja, cuci+setrika sekaligus
+  kgWash: number;
+  kgIron: number;
+  kgWashIron: number;
   // Dasar bonus: hanya nota lunas & bukan FREE
   bonusOrders: number;
   bonusOmzet: number;
@@ -38,6 +42,9 @@ export class StaffStatsService {
       this.prisma.$queryRaw<any[]>`
         SELECT o."staffId" AS id,
           COALESCE(SUM(i.qty),0)::float AS kg,
+          COALESCE(SUM(i.qty) FILTER (WHERE i."workType" = 'WASH'),0)::float AS "kgWash",
+          COALESCE(SUM(i.qty) FILTER (WHERE i."workType" = 'IRON'),0)::float AS "kgIron",
+          COALESCE(SUM(i.qty) FILTER (WHERE i."workType" = 'WASH_IRON'),0)::float AS "kgWashIron",
           COALESCE(SUM(i.qty) FILTER (WHERE o."paymentStatus" = 'PAID' AND NOT o."isFree"),0)::float AS "bonusKg"
         FROM order_items i JOIN orders o ON o.id = i."orderId"
         WHERE o."deletedAt" IS NULL AND o.status <> 'CANCELLED' AND i.unit = 'KG'
@@ -52,13 +59,14 @@ export class StaffStatsService {
           orderCount: x.orderCount, omzet: x.omzet, unpaid: x.unpaid,
           bonusOrders: x.bonusOrders, bonusOmzet: x.bonusOmzet,
           kg: roundKg(kgMap.get(x.id)?.kg ?? 0), bonusKg: roundKg(kgMap.get(x.id)?.bonusKg ?? 0),
+          kgWash: roundKg(kgMap.get(x.id)?.kgWash ?? 0), kgIron: roundKg(kgMap.get(x.id)?.kgIron ?? 0), kgWashIron: roundKg(kgMap.get(x.id)?.kgWashIron ?? 0),
         },
       ]),
     );
   }
 
   static empty(): StaffStats {
-    return { orderCount: 0, omzet: 0, unpaid: 0, kg: 0, bonusOrders: 0, bonusOmzet: 0, bonusKg: 0 };
+    return { orderCount: 0, omzet: 0, unpaid: 0, kg: 0, kgWash: 0, kgIron: 0, kgWashIron: 0, bonusOrders: 0, bonusOmzet: 0, bonusKg: 0 };
   }
 
   /** Performa semua staff aktif untuk satu bulan (Owner). */
@@ -89,11 +97,16 @@ export class StaffStatsService {
       }),
       this.settings.get(),
     ]);
-    const byStaff = new Map<number, { userId: number; name: string; totalKg: number; orderCount: number; items: Map<number, { customerId: number; name: string; kg: number }> }>();
+    const byStaff = new Map<number, { userId: number; name: string; totalKg: number; kgWash: number; kgIron: number; kgWashIron: number; orderCount: number; items: Map<number, { customerId: number; name: string; kg: number }> }>();
     for (const o of orders) {
-      const kg = o.items.filter((i) => i.unit === 'KG').reduce((s, i) => s + i.qty, 0);
-      const s = byStaff.get(o.staffId) ?? { userId: o.staffId, name: o.staff.name, totalKg: 0, orderCount: 0, items: new Map() };
+      const kgItems = o.items.filter((i) => i.unit === 'KG');
+      const kg = kgItems.reduce((s, i) => s + i.qty, 0);
+      const of = (t: string) => kgItems.filter((i) => i.workType === t).reduce((s, i) => s + i.qty, 0);
+      const s = byStaff.get(o.staffId) ?? { userId: o.staffId, name: o.staff.name, totalKg: 0, kgWash: 0, kgIron: 0, kgWashIron: 0, orderCount: 0, items: new Map() };
       s.totalKg += kg;
+      s.kgWash += of('WASH');
+      s.kgIron += of('IRON');
+      s.kgWashIron += of('WASH_IRON');
       s.orderCount += 1;
       const it = s.items.get(o.customerId) ?? { customerId: o.customerId, name: o.customer.name, kg: 0 };
       it.kg += kg;
@@ -105,7 +118,7 @@ export class StaffStatsService {
       hari: hariName(date),
       targetKg: cfg.staff.dailyTargetKg,
       staff: [...byStaff.values()]
-        .map((s) => ({ ...s, totalKg: roundKg(s.totalKg), items: [...s.items.values()].map((i) => ({ ...i, kg: roundKg(i.kg) })).filter((i) => i.kg > 0) }))
+        .map((s) => ({ ...s, totalKg: roundKg(s.totalKg), kgWash: roundKg(s.kgWash), kgIron: roundKg(s.kgIron), kgWashIron: roundKg(s.kgWashIron), items: [...s.items.values()].map((i) => ({ ...i, kg: roundKg(i.kg) })).filter((i) => i.kg > 0) }))
         .sort((a, b) => b.totalKg - a.totalKg),
     };
   }

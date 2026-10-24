@@ -7,8 +7,8 @@ import { AuditService } from '../audit/audit.service';
 
 export interface AppSettings {
   shop: { name: string; address: string; phone: string; footer: string };
-  free: { threshold: number; freeKg: number; notifyReady: boolean };
-  wa: { autoSendFinished: boolean; finishedTemplate: string; freeReadyTemplate: string };
+  free: { threshold: number; freeKg: number };
+  wa: { autoSendFinished: boolean; finishedTemplate: string };
   staff: { dailyTargetKg: number };
 }
 
@@ -20,13 +20,11 @@ export const DEFAULT_SETTINGS: AppSettings = {
     phone: '',
     footer: 'Terima kasih sudah mencuci di Djotos Laundry 🙏',
   },
-  free: { threshold: 9, freeKg: 3, notifyReady: true },
+  free: { threshold: 9, freeKg: 3 },
   wa: {
     autoSendFinished: true,
     finishedTemplate:
       'Halo kak {nama} 👋\n\nCucian kakak di {toko} (nota *{no_nota}*) sudah *SELESAI* dan siap diambil.\n\nLayanan: {layanan}\nTotal: {total}\nStatus bayar: {status_bayar}\n\nTerima kasih 🙏',
-    freeReadyTemplate:
-      'Halo kak {nama} 🎉\n\nSelamat! Kakak sudah mengumpulkan {progres} nota cuci di {toko}. Cuci berikutnya *GRATIS*, tinggal bilang ke kasir ya.\n\nTerima kasih 🙏',
   },
   staff: { dailyTargetKg: 50 },
 };
@@ -42,7 +40,8 @@ export class SettingsService {
     const out: any = {};
     for (const key of SECTIONS) {
       const row = rows.find((r) => r.key === key);
-      out[key] = { ...DEFAULT_SETTINGS[key], ...((row?.value as object) ?? {}) };
+      const stored = (row?.value as Record<string, unknown>) ?? {};
+      out[key] = Object.fromEntries(Object.keys(DEFAULT_SETTINGS[key]).map((k) => [k, k in stored ? stored[k] : (DEFAULT_SETTINGS[key] as any)[k]]));
     }
     return out as AppSettings;
   }

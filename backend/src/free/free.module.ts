@@ -5,7 +5,7 @@ import { AuthUser, CurrentUser } from '../common/auth';
 import { bad, notFound } from '../common/errors';
 import { PrismaService } from '../common/prisma.service';
 import { AuditService } from '../audit/audit.service';
-import { eligibleOrderWhere, LoyaltyModule, LoyaltyService } from '../loyalty/loyalty.service';
+import { eligibleOrderWhere, LoyaltyModule, LoyaltyService, toProgress } from '../loyalty/loyalty.service';
 import { OrdersModule } from '../orders/orders.module';
 import { OrdersService } from '../orders/orders.service';
 import { SettingsService } from '../settings/settings.service';
@@ -26,7 +26,12 @@ export class FreeService {
     private audit: AuditService,
   ) {}
 
-  /** Progres semua customer yang pernah punya nota terhitung, plus yang sudah berhak klaim. */
+  /**
+   * Hak FREE menumpuk tanpa kedaluwarsa. Tiap customer punya:
+   *  - available : berapa kali FREE bisa diklaim sekarang (total nota terhitung ÷ ambang)
+   *  - cycle     : progres menuju FREE berikutnya
+   * Hanya staff/owner yang melihat ini; customer tidak dikirimi pengingat.
+   */
   async overview() {
     const [cfg, counts, claims] = await Promise.all([
       this.settings.get(),
@@ -40,16 +45,15 @@ export class FreeService {
     const claimMap = new Map(claims.map((c) => [c.customerId, c]));
     const rows = customers
       .map((c) => {
-        const count = counts.get(c.id) ?? 0;
         const cl = claimMap.get(c.id);
-        return { ...c, count, threshold: cfg.free.threshold, eligible: count >= cfg.free.threshold, claimedTimes: cl?._count._all ?? 0, lastClaimAt: cl?._max.claimedAt ?? null };
+        return { ...c, ...toProgress(counts.get(c.id) ?? 0, cfg.free.threshold), claimedTimes: cl?._count._all ?? 0, lastClaimAt: cl?._max.claimedAt ?? null };
       })
-      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+      .sort((a, b) => b.available - a.available || b.count - a.count || a.name.localeCompare(b.name));
     return {
       threshold: cfg.free.threshold,
       freeKg: cfg.free.freeKg,
-      ready: rows.filter((r) => r.eligible),
-      progress: rows.filter((r) => !r.eligible),
+      ready: rows.filter((r) => r.available >= 1),
+      progress: rows.filter((r) => r.available < 1),
     };
   }
 
@@ -67,7 +71,7 @@ export class FreeService {
 
   /**
    * Klaim FREE: buat nota bernilai Rp 0 (kelebihan di atas berat FREE ditagih normal),
-   * lalu "pakai" N nota tertua supaya counter kembali ke 0 (sisa lebih dari N tetap tersimpan).
+   * lalu "pakai" N nota tertua. Sisa nota tetap tersimpan dan terus menumpuk (tanpa kedaluwarsa) untuk klaim berikutnya.
    */
   async claim(dto: ClaimFreeDto, user: AuthUser) {
     const cfg = await this.settings.get();

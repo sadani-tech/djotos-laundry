@@ -20,6 +20,11 @@
 - Satuan (pcs): SPK 8.000, SPB 10.000, SSK 10.000, SSB 15.000, BDK 20.000, BDB 25.000, BDJ 35.000.
 - Di atas 20 kg (tabel berhenti di 20) tetap memakai tarif per kg yang sama.
 
+## Jenis kerja & performa staff
+Tiap layanan per kg punya **jenis kerja**: **Cuci** (CB, CBX), **Setrika** (ST, STX), atau **Cuci + Setrika** sekaligus (CK, CKX); satuan = Lainnya. Jenis kerja disalin ke item nota saat nota dibuat, jadi mengubah layanan tidak mengubah nota lama.
+Di **Staff & Performa** dan **Rekap Harian**, kg dipisah menjadi tiga kolom (Cuci / Setrika / Cuci + Setrika) atas nama **staff yang menginput nota**. Ketiganya dijumlahkan = total kg (tidak ada hitung ganda). Alur status nota tidak berubah.
+Estimasi jam/hari selesai **tidak dipakai** (dihapus dari order dan dari data layanan).
+
 ## Rumus harga
 ```
 qty ditagih = max(qty, minQty)
@@ -31,12 +36,14 @@ Semua angka (tarif, minimum, minPrice) bisa diedit owner di menu **Layanan & Har
 1. **Dua kolom centang di buku** = Cash dan QRIS. Baris tanpa centang = **Belum Bayar**.
 2. **Zona waktu WIB (UTC+7)** untuk "hari ini", laporan harian/mingguan/bulanan. Minggu dimulai **Senin**.
 3. **Alur status**: Diterima → Diproses → Selesai → Diambil. Status boleh mundur satu langkah oleh owner saja. Batal = status tersendiri (CANCELLED).
-4. **WA otomatis** terkirim saat status berubah ke **Selesai**. Jika customer tidak punya nomor WA, log dicatat "Gagal: nomor kosong".
+4. **WA otomatis** hanya untuk satu hal: terkirim saat status berubah ke **Selesai**. Jika customer tidak punya nomor WA, log dicatat "Gagal: nomor kosong".
 5. **FREE (loyalty)**
    - Yang dihitung: nota yang **lunas**, **tidak dibatalkan/dihapus**, bukan nota FREE, dan mengandung layanan yang bertanda "Dihitung FREE" (default: CK, CB, CKX, CBX).
    - Ambang default **9** nota → hak 1× gratis (nota ke-10). Ambang bisa diubah di Pengaturan.
    - **Isi gratis = 3 kg** (default, diubah di Pengaturan) — mengikuti buku (`free 3kg`, `Mida 4 CK free 3kg Rp 5.000`). Bila berat melebihi 3 kg, **kelebihannya ditagih normal**. Layanan & berat dipilih saat klaim.
-   - Klaim "memakai" 9 nota tertua yang memenuhi syarat; jika customer punya lebih dari 9, **sisanya tetap tersimpan** (bukan hangus). Normalnya sisa = 0 sehingga counter kembali 0.
+   - **Hak FREE menumpuk tanpa kedaluwarsa.** Hak tersedia = total nota terhitung ÷ 9 (dibulatkan ke bawah); progres menuju FREE berikutnya = sisa baginya. Contoh: 20 nota → **2× FREE tersedia**, progres 2/9. Selama belum diklaim, hak terus bertambah.
+   - Tiap klaim "memakai" 9 nota tertua yang memenuhi syarat; sisanya tetap tersimpan untuk klaim berikutnya.
+   - **Customer tidak dikirimi pengingat/WA soal FREE.** Hanya staff dan owner yang tahu, lewat tab FREE, kartu customer, penanda "Hak FREE ×N" di daftar/detail nota, dan banner di Order Baru.
    - Nota yang sudah dipakai klaim tidak bisa dibatalkan/dihapus.
 6. **Pembayaran**: boleh dicicil, tiap pembayaran punya metode sendiri (Cash/QRIS) sehingga satu nota bisa campuran. Status: Belum Bayar / Sebagian / Lunas. Nota FREE bernilai Rp 0 otomatis Lunas.
 7. **Cashflow**: pemasukan dihitung **berdasar tanggal pembayaran diterima** (bukan tanggal nota). Pengeluaran punya metode (default Cash) sehingga bisa dihitung **kas bersih Cash**.

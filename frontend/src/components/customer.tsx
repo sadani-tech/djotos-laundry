@@ -12,7 +12,7 @@ export function NewCustomerSheet({ open, onClose, onCreated, initialName = '' }:
   useEffect(() => { if (open) { setName(initialName); setPhone(''); } }, [open, initialName]);
   const save = async () => {
     const c = await run(() => api.post<Customer>('/customers', { name, phone: phone || undefined }));
-    if (c) { refreshAll(); onCreated({ ...c, orderCount: 0, totalKg: 0, totalSpent: 0, unpaid: 0, lastOrderAt: null, free: { count: 0, threshold: 9, eligible: false } }); }
+    if (c) { refreshAll(); onCreated({ ...c, orderCount: 0, totalKg: 0, totalSpent: 0, unpaid: 0, lastOrderAt: null, free: { count: 0, threshold: 9, eligible: false, available: 0, cycle: 0 } }); }
   };
   return (
     <Sheet open={open} onClose={onClose} title="Customer baru">

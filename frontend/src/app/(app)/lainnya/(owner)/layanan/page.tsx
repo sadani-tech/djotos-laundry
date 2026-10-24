@@ -4,13 +4,13 @@ import { useEffect, useState } from 'react';
 import { Button, ErrorBox, Field, PageHeader, Sheet, Spinner, useAction } from '@/components/ui';
 import { api } from '@/lib/api';
 import { rupiah } from '@/lib/format';
-import { CATEGORY_LABEL } from '@/lib/pricing';
+import { CATEGORY_LABEL, WORK_LABEL } from '@/lib/pricing';
 import { refreshAll, useApi } from '@/lib/swr';
-import type { Service } from '@/lib/types';
+import type { Service, WorkType } from '@/lib/types';
 
-type Form = { code: string; name: string; category: Service['category']; unit: Service['unit']; rate: string; minQty: string; minPrice: string; durationHours: string; countsForFree: boolean; isActive: boolean };
-const empty: Form = { code: '', name: '', category: 'REGULER', unit: 'KG', rate: '', minQty: '1', minPrice: '', durationHours: '48', countsForFree: false, isActive: true };
-const toForm = (s: Service): Form => ({ code: s.code, name: s.name, category: s.category, unit: s.unit, rate: String(s.rate), minQty: String(s.minQty), minPrice: s.minPrice ? String(s.minPrice) : '', durationHours: String(s.durationHours), countsForFree: s.countsForFree, isActive: s.isActive });
+type Form = { code: string; name: string; category: Service['category']; unit: Service['unit']; rate: string; minQty: string; minPrice: string; workType: WorkType; countsForFree: boolean; isActive: boolean };
+const empty: Form = { code: '', name: '', category: 'REGULER', unit: 'KG', rate: '', minQty: '1', minPrice: '', workType: 'OTHER', countsForFree: false, isActive: true };
+const toForm = (s: Service): Form => ({ code: s.code, name: s.name, category: s.category, unit: s.unit, rate: String(s.rate), minQty: String(s.minQty), minPrice: s.minPrice ? String(s.minPrice) : '', workType: s.workType ?? 'OTHER', countsForFree: s.countsForFree, isActive: s.isActive });
 const num = (v: string) => parseFloat(v.replace(',', '.')) || 0;
 
 export default function ServicesPage() {
@@ -29,7 +29,7 @@ export default function ServicesPage() {
                 <span className="flex h-12 min-w-16 shrink-0 items-center justify-center rounded-xl bg-brand-100 px-2 text-lg font-extrabold text-brand-700">{s.code}</span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-bold">{s.name}{!s.isActive && ' (nonaktif)'}</span>
-                  <span className="block text-sm text-slate-500">{rupiah(s.rate)}/{s.unit === 'KG' ? 'kg' : 'pcs'}{s.minQty > 1 ? ` · min ${s.minQty}` : ''}{s.minPrice ? ` · min ${rupiah(s.minPrice)}` : ''} · {s.durationHours} jam{s.countsForFree ? ' · dihitung FREE' : ''}</span>
+                  <span className="block text-sm text-slate-500">{rupiah(s.rate)}/{s.unit === 'KG' ? 'kg' : 'pcs'}{s.minQty > 1 ? ` · min ${s.minQty}` : ''}{s.minPrice ? ` · min ${rupiah(s.minPrice)}` : ''}{s.unit === 'KG' ? ` · ${WORK_LABEL[s.workType ?? 'OTHER']}` : ''}{s.countsForFree ? ' · dihitung FREE' : ''}</span>
                 </span>
               </button>
             ))}
@@ -48,7 +48,7 @@ function ServiceSheet({ service, onClose, onDone }: { service: Service | null; o
   const set = (p: Partial<Form>) => setF((x) => ({ ...x, ...p }));
 
   const save = async () => {
-    const body = { name: f.name, category: f.category, unit: f.unit, rate: Math.round(num(f.rate)), minQty: num(f.minQty) || 1, minPrice: f.minPrice ? Math.round(num(f.minPrice)) : null, durationHours: Math.round(num(f.durationHours)) || 48, countsForFree: f.countsForFree, isActive: f.isActive };
+    const body = { name: f.name, category: f.category, unit: f.unit, rate: Math.round(num(f.rate)), minQty: num(f.minQty) || 1, minPrice: f.minPrice ? Math.round(num(f.minPrice)) : null, workType: f.unit === 'KG' ? f.workType : 'OTHER', countsForFree: f.countsForFree, isActive: f.isActive };
     const r = await run(() => (service ? api.patch(`/services/${service.id}`, body) : api.post('/services', { ...body, code: f.code })), 'Layanan disimpan');
     if (r) onDone();
   };
@@ -68,8 +68,17 @@ function ServiceSheet({ service, onClose, onDone }: { service: Service | null; o
         <Field label={`Harga per ${unit} (Rp)`}><input className="input" inputMode="numeric" value={f.rate} onChange={(e) => set({ rate: e.target.value.replace(/\D/g, '') })} /></Field>
         <Field label={`Minimal (${unit})`}><input className="input" inputMode="decimal" value={f.minQty} onChange={(e) => set({ minQty: e.target.value })} /></Field>
         <Field label="Harga minimum (Rp)" hint="Kosongkan bila tidak ada. CK 3 kg = 16.000."><input className="input" inputMode="numeric" value={f.minPrice} onChange={(e) => set({ minPrice: e.target.value.replace(/\D/g, '') })} /></Field>
-        <Field label="Estimasi (jam)"><input className="input" inputMode="numeric" value={f.durationHours} onChange={(e) => set({ durationHours: e.target.value.replace(/\D/g, '') })} /></Field>
       </div>
+      {f.unit === 'KG' && (
+        <Field label="Jenis kerja" hint="Dipakai untuk memisahkan kg cuci dan kg setrika di Staff & Performa.">
+          <select className="input" value={f.workType} onChange={(e) => set({ workType: e.target.value as WorkType })}>
+            <option value="WASH">Cuci saja</option>
+            <option value="IRON">Setrika saja</option>
+            <option value="WASH_IRON">Cuci + setrika sekaligus</option>
+            <option value="OTHER">Lainnya</option>
+          </select>
+        </Field>
+      )}
       <label className="mb-4 flex items-center gap-3 font-semibold"><input type="checkbox" className="h-6 w-6 accent-brand-600" checked={f.countsForFree} onChange={(e) => set({ countsForFree: e.target.checked })} /> Dihitung untuk program FREE</label>
       <label className="mb-6 flex items-center gap-3 font-semibold"><input type="checkbox" className="h-6 w-6 accent-brand-600" checked={f.isActive} onChange={(e) => set({ isActive: e.target.checked })} /> Aktif (tampil di order)</label>
       <Button size="lg" className="w-full" loading={busy} disabled={!f.name || !f.rate || (!service && f.code.length < 2)} onClick={save}>Simpan</Button>
