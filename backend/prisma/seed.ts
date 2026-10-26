@@ -1,5 +1,5 @@
 // Seeder: layanan dari pricelist, akun owner + 2 staff, aturan bonus, dan (opsional) data contoh.
-import { PrismaClient, Role, ServiceCategory, Unit, PayMethod, OrderStatus, PaymentStatus } from '@prisma/client';
+import { PrismaClient, Role, ServiceCategory, Unit, PayMethod, OrderStatus, PaymentStatus, WorkType } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { calcLinePrice } from '../src/common/pricing';
 import { wibDateStr } from '../src/common/time';
@@ -14,24 +14,24 @@ const prisma = new PrismaClient();
 
 type SvcSeed = {
   code: string; name: string; category: ServiceCategory; unit: Unit; rate: number;
-  minQty: number; minPrice?: number; durationHours: number; countsForFree: boolean;
+  minQty: number; minPrice?: number; workType: WorkType; countsForFree: boolean;
 };
 
-// Sumber: Daftar_Harga_Djotos_Laundry.pdf. Estimasi durasi tidak ada di pricelist → default (bisa diubah owner).
+// Sumber: Daftar_Harga_Djotos_Laundry.pdf. Jenis kerja dipakai untuk memisahkan kg cuci / setrika di performa staff.
 export const SERVICES: SvcSeed[] = [
-  { code: 'CK', name: 'Cuci Kering (Cuci + Setrika)', category: 'REGULER', unit: 'KG', rate: 5000, minQty: 3, minPrice: 16000, durationHours: 48, countsForFree: true },
-  { code: 'CB', name: 'Cuci Basah', category: 'REGULER', unit: 'KG', rate: 3000, minQty: 3, durationHours: 48, countsForFree: true },
-  { code: 'ST', name: 'Setrika', category: 'REGULER', unit: 'KG', rate: 4000, minQty: 3, durationHours: 48, countsForFree: false },
-  { code: 'CKX', name: 'Cuci Kering Express', category: 'EXPRESS', unit: 'KG', rate: 7000, minQty: 2, durationHours: 24, countsForFree: true },
-  { code: 'CBX', name: 'Cuci Basah Express', category: 'EXPRESS', unit: 'KG', rate: 4000, minQty: 3, durationHours: 24, countsForFree: true },
-  { code: 'STX', name: 'Setrika Express', category: 'EXPRESS', unit: 'KG', rate: 6000, minQty: 2, durationHours: 24, countsForFree: false },
-  { code: 'SPK', name: 'Sprei Kecil', category: 'SATUAN', unit: 'PCS', rate: 8000, minQty: 1, durationHours: 72, countsForFree: false },
-  { code: 'SPB', name: 'Sprei Besar', category: 'SATUAN', unit: 'PCS', rate: 10000, minQty: 1, durationHours: 72, countsForFree: false },
-  { code: 'SSK', name: 'Selimut Kecil', category: 'SATUAN', unit: 'PCS', rate: 10000, minQty: 1, durationHours: 72, countsForFree: false },
-  { code: 'SSB', name: 'Selimut Besar', category: 'SATUAN', unit: 'PCS', rate: 15000, minQty: 1, durationHours: 72, countsForFree: false },
-  { code: 'BDK', name: 'Bed Cover Kecil', category: 'SATUAN', unit: 'PCS', rate: 20000, minQty: 1, durationHours: 72, countsForFree: false },
-  { code: 'BDB', name: 'Bed Cover Besar', category: 'SATUAN', unit: 'PCS', rate: 25000, minQty: 1, durationHours: 72, countsForFree: false },
-  { code: 'BDJ', name: 'Bed Cover Jumbo', category: 'SATUAN', unit: 'PCS', rate: 35000, minQty: 1, durationHours: 72, countsForFree: false },
+  { code: 'CK', name: 'Cuci Kering (Cuci + Setrika)', category: 'REGULER', unit: 'KG', rate: 5000, minQty: 3, minPrice: 16000, workType: 'WASH_IRON', countsForFree: true },
+  { code: 'CB', name: 'Cuci Basah', category: 'REGULER', unit: 'KG', rate: 3000, minQty: 3, workType: 'WASH', countsForFree: true },
+  { code: 'ST', name: 'Setrika', category: 'REGULER', unit: 'KG', rate: 4000, minQty: 3, workType: 'IRON', countsForFree: false },
+  { code: 'CKX', name: 'Cuci Kering Express', category: 'EXPRESS', unit: 'KG', rate: 7000, minQty: 2, workType: 'WASH_IRON', countsForFree: true },
+  { code: 'CBX', name: 'Cuci Basah Express', category: 'EXPRESS', unit: 'KG', rate: 4000, minQty: 3, workType: 'WASH', countsForFree: true },
+  { code: 'STX', name: 'Setrika Express', category: 'EXPRESS', unit: 'KG', rate: 6000, minQty: 2, workType: 'IRON', countsForFree: false },
+  { code: 'SPK', name: 'Sprei Kecil', category: 'SATUAN', unit: 'PCS', rate: 8000, minQty: 1, workType: 'OTHER', countsForFree: false },
+  { code: 'SPB', name: 'Sprei Besar', category: 'SATUAN', unit: 'PCS', rate: 10000, minQty: 1, workType: 'OTHER', countsForFree: false },
+  { code: 'SSK', name: 'Selimut Kecil', category: 'SATUAN', unit: 'PCS', rate: 10000, minQty: 1, workType: 'OTHER', countsForFree: false },
+  { code: 'SSB', name: 'Selimut Besar', category: 'SATUAN', unit: 'PCS', rate: 15000, minQty: 1, workType: 'OTHER', countsForFree: false },
+  { code: 'BDK', name: 'Bed Cover Kecil', category: 'SATUAN', unit: 'PCS', rate: 20000, minQty: 1, workType: 'OTHER', countsForFree: false },
+  { code: 'BDB', name: 'Bed Cover Besar', category: 'SATUAN', unit: 'PCS', rate: 25000, minQty: 1, workType: 'OTHER', countsForFree: false },
+  { code: 'BDJ', name: 'Bed Cover Jumbo', category: 'SATUAN', unit: 'PCS', rate: 35000, minQty: 1, workType: 'OTHER', countsForFree: false },
 ];
 
 async function seedCore() {
@@ -86,10 +86,9 @@ async function seedSample() {
         customerId: byName(o.c).id, staffId: o.staff.id, status, subtotal: total, total, paidAmount: paid,
         paymentStatus: paid >= total ? PaymentStatus.PAID : paid > 0 ? PaymentStatus.PARTIAL : PaymentStatus.UNPAID,
         countsForFree: lines.some((l) => l.s.countsForFree), receivedAt: when, createdAt: when,
-        estimatedAt: new Date(when.getTime() + 48 * 3600_000),
         finishedAt: status === 'FINISHED' || status === 'PICKED_UP' ? new Date(when.getTime() + 20 * 3600_000) : null,
         pickedUpAt: status === 'PICKED_UP' ? new Date(when.getTime() + 30 * 3600_000) : null,
-        items: { create: lines.map((l) => ({ serviceId: l.s.id, code: l.s.code, name: l.s.name, unit: l.s.unit, qty: l.billedQty, unitPrice: l.s.rate, subtotal: l.subtotal })) },
+        items: { create: lines.map((l) => ({ serviceId: l.s.id, code: l.s.code, name: l.s.name, unit: l.s.unit, workType: l.s.workType, qty: l.billedQty, unitPrice: l.s.rate, subtotal: l.subtotal })) },
       },
     });
     if (paid > 0) {

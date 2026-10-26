@@ -2,15 +2,17 @@ export type Role = 'OWNER' | 'STAFF';
 export type OrderStatus = 'RECEIVED' | 'PROCESSING' | 'FINISHED' | 'PICKED_UP' | 'CANCELLED';
 export type PaymentStatus = 'UNPAID' | 'PARTIAL' | 'PAID';
 export type PayMethod = 'CASH' | 'QRIS';
+export type WorkType = 'WASH' | 'IRON' | 'WASH_IRON' | 'OTHER';
 
 export interface User { id: number; username: string; name: string; role: Role; isActive?: boolean }
 
 export interface Service {
   id: number; code: string; name: string; category: 'REGULER' | 'EXPRESS' | 'SATUAN'; unit: 'KG' | 'PCS';
-  rate: number; minQty: number; minPrice: number | null; durationHours: number; countsForFree: boolean; isActive: boolean; sortOrder: number;
+  rate: number; minQty: number; minPrice: number | null; workType: WorkType; countsForFree: boolean; isActive: boolean; sortOrder: number;
 }
 
-export interface FreeProgress { count: number; threshold: number; eligible: boolean }
+/** Hak FREE menumpuk tanpa kedaluwarsa: available = count ÷ threshold, cycle = sisa menuju FREE berikutnya. */
+export interface FreeProgress { count: number; threshold: number; eligible: boolean; available: number; cycle: number }
 
 export interface Customer {
   id: number; name: string; phone: string | null; address?: string | null; note?: string | null;
@@ -28,16 +30,18 @@ export interface WaLog {
 export interface Order {
   id: number; invoiceNo: string; status: OrderStatus; paymentStatus: PaymentStatus; isFree: boolean;
   subtotal: number; discount: number; total: number; paidAmount: number; balance: number; kg: number; summary: string;
-  note: string | null; receivedAt: string; estimatedAt: string | null; finishedAt: string | null; pickedUpAt: string | null;
+  note: string | null; receivedAt: string; finishedAt: string | null; pickedUpAt: string | null;
   customer: { id: number; name: string; phone: string | null };
   staff: { id: number; name: string };
   items: OrderItem[]; payments: Payment[]; waLogs?: WaLog[]; freeClaimId?: number | null;
+  /** Jumlah FREE yang bisa diklaim customer nota ini (hanya untuk staff/owner). */
+  freeAvailable?: number;
 }
 
 export interface Settings {
   shop: { name: string; address: string; phone: string; footer: string };
-  free: { threshold: number; freeKg: number; notifyReady: boolean };
-  wa: { autoSendFinished: boolean; finishedTemplate: string; freeReadyTemplate: string };
+  free: { threshold: number; freeKg: number };
+  wa: { autoSendFinished: boolean; finishedTemplate: string };
   staff: { dailyTargetKg: number };
 }
 
@@ -66,5 +70,5 @@ export interface BonusRow {
 }
 export interface BonusRule { id?: number; name: string; type: 'PER_KG' | 'PERCENT_OMZET'; value: number; minTarget: number; isActive: boolean }
 
-export interface FreeRow { id: number; name: string; phone: string | null; count: number; threshold: number; eligible: boolean; claimedTimes: number; lastClaimAt: string | null }
+export interface FreeRow { id: number; name: string; phone: string | null; count: number; threshold: number; eligible: boolean; available: number; cycle: number; claimedTimes: number; lastClaimAt: string | null }
 export interface FreeOverview { threshold: number; freeKg: number; ready: FreeRow[]; progress: FreeRow[] }

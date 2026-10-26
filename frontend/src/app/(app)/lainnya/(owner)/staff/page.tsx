@@ -8,7 +8,7 @@ import { kg, rupiah } from '@/lib/format';
 import { useApi } from '@/lib/swr';
 import type { Role, User } from '@/lib/types';
 
-interface Perf { userId: number; name: string; role: Role; orderCount: number; omzet: number; unpaid: number; kg: number }
+interface Perf { userId: number; name: string; role: Role; orderCount: number; omzet: number; unpaid: number; kg: number; kgWash: number; kgIron: number }
 const currentMonth = () => new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 7);
 
 export default function StaffPage() {
@@ -37,6 +37,10 @@ export default function StaffPage() {
               <div className="rounded-lg bg-slate-100 p-2"><p className="text-slate-500">Nota</p><p className="font-extrabold">{p.orderCount}</p></div>
               <div className="rounded-lg bg-slate-100 p-2"><p className="text-slate-500">Cucian</p><p className="font-extrabold">{kg(p.kg)}</p></div>
               <div className="rounded-lg bg-slate-100 p-2"><p className="text-slate-500">Omzet</p><p className="font-extrabold">{rupiah(p.omzet)}</p></div>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-3 text-center text-sm" aria-label="Rincian kg per proses">
+              <div className="rounded-lg border border-line p-2"><p className="text-slate-500">Cuci</p><p className="font-extrabold text-brand-700">{kg(p.kgWash ?? 0)}</p></div>
+              <div className="rounded-lg border border-line p-2"><p className="text-slate-500">Setrika</p><p className="font-extrabold text-brand-700">{kg(p.kgIron ?? 0)}</p></div>
             </div>
             {p.unpaid > 0 && <p className="mt-2 text-sm font-semibold text-red-600">Belum dibayar customer: {rupiah(p.unpaid)}</p>}
           </div>

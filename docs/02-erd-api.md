@@ -20,9 +20,9 @@ erDiagram
 
   users { int id PK  string username UK  string name  enum role  bool isActive  string passwordHash }
   customers { int id PK  string name  string phone UK  string address  datetime deletedAt }
-  services { int id PK  string code UK  string name  enum category  enum unit  int rate  decimal minQty  int minPrice  int durationHours  bool countsForFree  bool isActive }
-  orders { int id PK  string invoiceNo UK  int customerId FK  int staffId FK  enum status  int subtotal  int discount  int total  int paidAmount  enum paymentStatus  bool isFree  bool countsForFree  int freeClaimId FK  datetime receivedAt  datetime estimatedAt  datetime finishedAt  datetime pickedUpAt  datetime deletedAt }
-  order_items { int id PK  int orderId FK  int serviceId FK  string code  string name  enum unit  decimal qty  int unitPrice  int subtotal }
+  services { int id PK  string code UK  string name  enum category  enum unit  int rate  decimal minQty  int minPrice  enum workType  bool countsForFree  bool isActive }
+  orders { int id PK  string invoiceNo UK  int customerId FK  int staffId FK  enum status  int subtotal  int discount  int total  int paidAmount  enum paymentStatus  bool isFree  bool countsForFree  int freeClaimId FK  datetime receivedAt  datetime finishedAt  datetime pickedUpAt  datetime deletedAt }
+  order_items { int id PK  int orderId FK  int serviceId FK  string code  string name  enum unit  enum workType  decimal qty  int unitPrice  int subtotal }
   payments { int id PK  int orderId FK  enum method  int amount  datetime paidAt  int receivedById FK  datetime voidedAt }
   expenses { int id PK  string category  string description  int amount  enum method  datetime spentAt  int createdById FK  datetime deletedAt }
   free_claims { int id PK  int customerId FK  int orderId FK  int claimedById FK  datetime claimedAt }
@@ -54,12 +54,12 @@ erDiagram
 | | `GET /cashflow/export?period&date` | Excel |
 | | `GET/POST /expenses` · `PATCH/DELETE /expenses/:id` | pengeluaran |
 | FREE | `GET /free` | progres semua customer + yang berhak klaim |
-| | `POST /free/claim` `{customerId, serviceId, qty}` | buat nota FREE |
+| | `POST /free/claim` `{customerId, serviceId, qty}` | buat nota FREE; hak menumpuk tanpa kedaluwarsa, `available` = hak tersedia, `cycle` = progres berikutnya |
 | | `GET /free/claims` | riwayat klaim |
 | Bonus | `GET /bonus/rules` · `PUT /bonus/rules` **O** | aturan |
 | | `GET /bonus/me?period=YYYY-MM` | Bonus Saya |
 | | `GET /bonus/summary?period` **O** · `POST /bonus/records/generate` **O** · `PATCH /bonus/records/:id/pay` **O** | |
-| Staff perf | `GET /staff/performance?period` **O** · `GET /staff/daily-recap?date` | omzet, nota, kg · rincian harian |
+| Staff perf | `GET /staff/performance?period` **O** · `GET /staff/daily-recap?date` | omzet, nota, kg (kolom Cuci dan Setrika; cuci+setrika masuk keduanya) · rincian harian |
 | WA | `GET /wa/logs` · `POST /wa/logs/:id/resend` · `POST /wa/test` **O** · `GET /wa/status` | |
 | Pengaturan | `GET /settings` · `PUT /settings` **O** | template WA, toko, FREE |
 | Audit | `GET /audit` **O** | riwayat perubahan |

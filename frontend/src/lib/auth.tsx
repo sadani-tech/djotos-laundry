@@ -1,6 +1,6 @@
 'use client';
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
-import { api, tokenStore } from './api';
+import { api, ApiError, tokenStore } from './api';
 import type { User } from './types';
 
 interface AuthCtx {
@@ -20,7 +20,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!tokenStore.get()) { setLoading(false); return; }
-    api.get<User>('/auth/me').then(setUser).catch(() => tokenStore.clear()).finally(() => setLoading(false));
+    // Hanya 401 (token tidak valid/kedaluwarsa) yang membuat sesi dihapus — itu sudah ditangani di api.ts.
+    // Gangguan jaringan atau API yang sedang restart (mis. saat deploy) dicoba ulang dan token tetap disimpan.
+    let cancelled = false;
+    const load = async () => {
+      for (let attempt = 0; attempt < 4 && !cancelled; attempt++) {
+        try {
+          setUser(await api.get<User>('/auth/me'));
+          break;
+        } catch (e) {
+          if (e instanceof ApiError && e.status === 401) break;
+          await new Promise((r) => setTimeout(r, 1500));
+        }
+      }
+      if (!cancelled) setLoading(false);
+    };
+    void load();
+    return () => { cancelled = true; };
   }, []);
 
   const login = useCallback(async (username: string, password: string) => {

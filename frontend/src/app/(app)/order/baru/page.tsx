@@ -6,7 +6,7 @@ import { NewCustomerSheet } from '@/components/customer';
 import { Button, Chip, Field, PageHeader, Progress, Segmented, Spinner, Stepper, useAction } from '@/components/ui';
 import { api } from '@/lib/api';
 import { kg, phoneShow, rupiah } from '@/lib/format';
-import { CATEGORY_LABEL, linePrice } from '@/lib/pricing';
+import { CATEGORY_LABEL, freeView, linePrice } from '@/lib/pricing';
 import { refreshAll, useApi } from '@/lib/swr';
 import type { Customer, Order, Service } from '@/lib/types';
 
@@ -143,12 +143,12 @@ function NewOrder() {
       )}
 
       {customer && customer.free.count > 0 && (
-        <div className={`mb-6 rounded-2xl border p-4 ${customer.free.eligible ? 'border-accent-300 bg-accent-50' : 'border-line bg-white'}`}>
+        <div className={`mb-6 rounded-2xl border p-4 ${freeView(customer.free).available > 0 ? 'border-accent-300 bg-accent-50' : 'border-line bg-white'}`}>
           <div className="mb-1 flex items-center gap-2 text-sm font-semibold">
-            <Gift className="h-4 w-4 text-accent-700" /> Progres FREE: {customer.free.count}/{customer.free.threshold}
+            <Gift className="h-4 w-4 text-accent-700" /> Progres FREE: {freeView(customer.free).cycle}/{customer.free.threshold}
           </div>
-          <Progress value={customer.free.count} max={customer.free.threshold} />
-          {customer.free.eligible && <p className="mt-1 text-sm font-semibold text-accent-800">Customer ini berhak cuci GRATIS — klaim di menu FREE.</p>}
+          <Progress value={freeView(customer.free).cycle} max={customer.free.threshold} />
+          {freeView(customer.free).available > 0 && <p className="mt-1 text-sm font-semibold text-accent-800">Customer ini punya {freeView(customer.free).available}× hak cuci GRATIS — klaim di menu FREE.</p>}
         </div>
       )}
 

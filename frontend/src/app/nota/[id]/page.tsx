@@ -59,7 +59,6 @@ export default function NotaPage() {
         <p>Tgl: {dateFmt(o.receivedAt, { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}</p>
         <p>Cust: {o.customer.name}{o.customer.phone ? ` (${phoneShow(o.customer.phone)})` : ''}</p>
         <p>Kasir: {o.staff.name}</p>
-        {o.estimatedAt && <p>Est. selesai: {dateFmt(o.estimatedAt, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>}
         {line}
         {o.items.map((i) => (
           <div key={i.id} className="mb-1">

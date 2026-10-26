@@ -1,5 +1,5 @@
 'use client';
-import { Banknote, CalendarDays, ChevronRight, ClipboardList, History, KeyRound, LogOut, MessageCircle, Settings, ShirtIcon, Users, Award } from 'lucide-react';
+import { Banknote, CalendarDays, Gift, ChevronRight, ClipboardList, History, KeyRound, LogOut, MessageCircle, Settings, ShirtIcon, Users, Award } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { PageHeader, useConfirm } from '@/components/ui';
@@ -29,6 +29,7 @@ export default function MorePage() {
 
       <p className="eyebrow mb-2">Operasional</p>
       <div className="card divide-y divide-line overflow-hidden p-0">
+        <Item href="/free" icon={<Gift />} title="Program FREE" hint="Hak cuci gratis customer: progres, klaim, riwayat" />
         <Item href="/lainnya/bonus" icon={<Award />} title={isOwner ? 'Bonus Staff' : 'Bonus Saya'} hint={isOwner ? 'Rekap bonus semua staff per bulan' : 'Lihat bonus bulan ini'} />
         <Item href="/lainnya/rekap-harian" icon={<CalendarDays />} title="Rekap Harian Staff" hint="Kg yang dicuci per staff + rincian customer" />
         <Item href="/lainnya/wa" icon={<MessageCircle />} title="Log WhatsApp" hint="Pesan otomatis terkirim / gagal, kirim ulang" />

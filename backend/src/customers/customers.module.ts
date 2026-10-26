@@ -10,7 +10,7 @@ import { roundKg } from '../common/pricing';
 import { PrismaService } from '../common/prisma.service';
 import { wibDateStr } from '../common/time';
 import { AuditService } from '../audit/audit.service';
-import { LoyaltyModule, LoyaltyService } from '../loyalty/loyalty.service';
+import { LoyaltyModule, LoyaltyService, toProgress } from '../loyalty/loyalty.service';
 import { ExcelService, ReportsModule } from '../reports/excel.service';
 
 export class CustomerDto {
@@ -90,7 +90,7 @@ export class CustomersService {
     let rows = customers.map((c) => {
       const r = recap.get(c.id) ?? EMPTY_RECAP;
       const count = free.get(c.id) ?? 0;
-      return { ...c, ...r, free: { count, threshold, eligible: count >= threshold } };
+      return { ...c, ...r, free: toProgress(count, threshold) };
     });
     if (q.unpaid) rows = rows.filter((r) => r.unpaid > 0);
     const sorters: Record<string, (a: any, b: any) => number> = {

@@ -9,6 +9,7 @@ import { Button, ErrorBox, PageHeader, Progress, Spinner, useAction, useConfirm 
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { dateFmt, kg, phoneShow, rupiah, waLink } from '@/lib/format';
+import { freeView } from '@/lib/pricing';
 import { refreshAll, useApi } from '@/lib/swr';
 import type { Customer, Order } from '@/lib/types';
 
@@ -25,6 +26,7 @@ export default function CustomerDetail() {
 
   if (error) return <><PageHeader title="Customer" back="/customer" /><ErrorBox error={error} retry={() => mutate()} /></>;
   if (!c) return <><PageHeader title="Customer" back="/customer" /><Spinner /></>;
+  const fv = freeView(c.free);
 
   const remove = async () => {
     const ok = await confirm({ title: 'Hapus customer ini?', danger: true, confirmText: 'Ya, hapus', message: 'Riwayat nota tetap tersimpan di laporan.' });
@@ -48,14 +50,15 @@ export default function CustomerDetail() {
       <div className="card mt-4">
         <div className="mb-2 flex items-center justify-between">
           <p className="flex items-center gap-2 font-bold"><Gift className="h-5 w-5 text-accent-700" /> Progres FREE</p>
-          <p className="font-extrabold">{c.free.count}/{c.free.threshold}</p>
+          <p className="font-extrabold">{fv.cycle}/{fv.threshold}</p>
         </div>
-        <Progress value={c.free.count} max={c.free.threshold} />
-        {c.free.eligible ? (
-          <Link href="/free"><Button variant="success" className="mt-4 w-full">Berhak cuci GRATIS — Klaim sekarang</Button></Link>
-        ) : (
-          <p className="mt-2 text-sm text-slate-500">Kurang {c.free.threshold - c.free.count} nota cuci (lunas) lagi untuk cuci gratis.{c.claims.length > 0 && ` Sudah klaim ${c.claims.length}×.`}</p>
+        <Progress value={fv.cycle} max={fv.threshold} />
+        {fv.available > 0 && (
+          <Link href="/free"><Button variant="success" className="mt-4 w-full">Punya {fv.available}× hak cuci GRATIS — Klaim</Button></Link>
         )}
+        <p className="mt-2 text-sm text-slate-500">
+          {fv.available > 0 ? `Hak FREE terus menumpuk dan tidak kedaluwarsa. ` : ''}Kurang {fv.threshold - fv.cycle} nota cuci (lunas) lagi untuk {fv.available > 0 ? 'FREE berikutnya' : 'cuci gratis'}.{c.claims.length > 0 && ` Sudah klaim ${c.claims.length}×.`}
+        </p>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3">

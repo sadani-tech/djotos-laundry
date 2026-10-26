@@ -44,6 +44,14 @@ enum Unit {
   PCS
 }
 
+// Jenis pekerjaan sebuah layanan, untuk memisahkan kg cuci / setrika di performa staff.
+enum WorkType {
+  WASH // cuci saja (CB, CBX)
+  IRON // setrika saja (ST, STX)
+  WASH_IRON // cuci + setrika sekaligus (CK, CKX)
+  OTHER // satuan / lainnya
+}
+
 enum BonusType {
   PER_KG
   PERCENT_OMZET
@@ -114,7 +122,7 @@ model Service {
   rate           Int // tarif per kg / per pcs
   minQty         Float           @default(1) // minimum yang ditagih
   minPrice       Int? // harga minimum (mis. CK 3 kg = 16.000)
-  durationHours  Int             @default(48)
+  workType       WorkType        @default(OTHER)
   countsForFree  Boolean         @default(false)
   isActive       Boolean         @default(true)
   sortOrder      Int             @default(0)
@@ -142,7 +150,6 @@ model Order {
   freeClaimId   Int? // klaim yang "memakai" nota ini
   note          String?
   receivedAt    DateTime      @default(now())
-  estimatedAt   DateTime?
   finishedAt    DateTime?
   pickedUpAt    DateTime?
   cancelledAt   DateTime?
@@ -172,6 +179,7 @@ model OrderItem {
   code      String // snapshot
   name      String // snapshot
   unit      Unit
+  workType  WorkType @default(OTHER) // snapshot jenis kerja saat nota dibuat
   qty       Float
   unitPrice Int // tarif saat nota dibuat
   subtotal  Int

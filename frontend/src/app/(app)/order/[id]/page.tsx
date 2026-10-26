@@ -101,6 +101,13 @@ function Detail() {
         </div>
       </div>
 
+      {!!o.freeAvailable && o.freeAvailable > 0 && !o.isFree && (
+        <Link href="/free" className="card mb-5 flex items-center gap-3 border-accent-300 bg-accent-50 p-4">
+          <span className="text-2xl">🎁</span>
+          <span className="min-w-0 flex-1"><span className="block font-bold text-accent-900">Customer ini punya {o.freeAvailable}× hak cuci GRATIS</span><span className="block text-sm text-accent-800">Ketuk untuk klaim di menu FREE. Customer tidak dikirimi pengingat.</span></span>
+        </Link>
+      )}
+
       {/* Progres status */}
       {!cancelled && (
         <div className="card mb-4">
@@ -113,7 +120,6 @@ function Detail() {
               </li>
             ))}
           </ol>
-          {o.estimatedAt && idx < 2 && <p className="mt-4 text-center text-sm text-slate-500">Estimasi selesai: <b>{dateTimeFmt(o.estimatedAt)}</b></p>}
           <AdvanceButton order={o} size="lg" onDone={reload} className="mt-4 w-full" />
         </div>
       )}

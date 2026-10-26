@@ -61,6 +61,7 @@ export function OrderCard({ order, showDate }: { order: Order; showDate?: boolea
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
             <StatusBadge status={order.status} />
             {order.status !== 'CANCELLED' && <PayBadge status={order.paymentStatus} balance={order.balance} free={order.isFree && order.total === 0} />}
+            {!!order.freeAvailable && order.freeAvailable > 0 && !order.isFree && <span title="Customer punya hak cuci gratis" className="inline-flex rounded-full bg-accent-100 px-2.5 py-1 text-xs font-bold text-accent-900">Hak FREE ×{order.freeAvailable}</span>}
           </div>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-2 pl-1">

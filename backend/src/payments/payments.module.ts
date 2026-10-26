@@ -6,7 +6,6 @@ import { bad, notFound, rupiah } from '../common/errors';
 import { ORDER_INCLUDE, orderView } from '../common/order-view';
 import { Db, PrismaService } from '../common/prisma.service';
 import { AuditService } from '../audit/audit.service';
-import { LoyaltyModule, LoyaltyService } from '../loyalty/loyalty.service';
 
 export class AddPaymentDto {
   @IsEnum(PayMethod, { message: 'Metode bayar harus CASH atau QRIS' }) method: PayMethod;
@@ -21,7 +20,7 @@ export const paymentStatusOf = (total: number, paid: number): PaymentStatus =>
 
 @Injectable()
 export class PaymentsService {
-  constructor(private prisma: PrismaService, private audit: AuditService, private loyalty: LoyaltyService) {}
+  constructor(private prisma: PrismaService, private audit: AuditService) {}
 
   /** Catat pembayaran di dalam transaksi pemanggil. Mengembalikan status bayar terbaru. */
   async addInTx(db: Db, orderId: number, p: { method: PayMethod; amount: number }, userId: number) {
@@ -45,7 +44,6 @@ export class PaymentsService {
 
   async add(orderId: number, dto: AddPaymentDto, user: AuthUser) {
     const r = await this.prisma.$transaction((tx) => this.addInTx(tx, orderId, dto, user.id));
-    if (r.becamePaid) await this.loyalty.onOrderPaid(r.order);
     return this.view(orderId);
   }
 
@@ -56,7 +54,6 @@ export class PaymentsService {
       if (!order) throw notFound('Nota');
       return this.addInTx(tx, orderId, { method: dto.method, amount: order.total - order.paidAmount }, user.id);
     });
-    if (r.becamePaid) await this.loyalty.onOrderPaid(r.order);
     return this.view(orderId);
   }
 
@@ -104,5 +101,5 @@ export class PaymentsController {
   }
 }
 
-@Module({ imports: [LoyaltyModule], controllers: [PaymentsController], providers: [PaymentsService], exports: [PaymentsService] })
+@Module({ controllers: [PaymentsController], providers: [PaymentsService], exports: [PaymentsService] })
 export class PaymentsModule {}

@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Injectable, Module, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
-import { ServiceCategory, Unit } from '@prisma/client';
+import { ServiceCategory, Unit, WorkType } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import { IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString, Matches, Min, MinLength } from 'class-validator';
 import { AuthUser, CurrentUser, OwnerOnly } from '../common/auth';
@@ -17,7 +17,7 @@ export class CreateServiceDto {
   @IsInt({ message: 'Harga harus angka bulat' }) @Min(0) rate: number;
   @IsOptional() @IsNumber() @Min(0.1, { message: 'Minimum harus lebih dari 0' }) minQty?: number;
   @IsOptional() @IsInt() @Min(0) minPrice?: number | null;
-  @IsOptional() @IsInt() @Min(1) durationHours?: number;
+  @IsOptional() @IsEnum(WorkType, { message: 'Jenis kerja harus WASH, IRON, WASH_IRON, atau OTHER' }) workType?: WorkType;
   @IsOptional() @IsBoolean() countsForFree?: boolean;
   @IsOptional() @IsBoolean() isActive?: boolean;
   @IsOptional() @IsInt() sortOrder?: number;
@@ -31,7 +31,7 @@ export class UpdateServiceDto {
   @IsOptional() @IsInt() @Min(0) rate?: number;
   @IsOptional() @IsNumber() @Min(0.1) minQty?: number;
   @IsOptional() @IsInt() @Min(0) minPrice?: number | null;
-  @IsOptional() @IsInt() @Min(1) durationHours?: number;
+  @IsOptional() @IsEnum(WorkType) workType?: WorkType;
   @IsOptional() @IsBoolean() countsForFree?: boolean;
   @IsOptional() @IsBoolean() isActive?: boolean;
   @IsOptional() @IsInt() sortOrder?: number;

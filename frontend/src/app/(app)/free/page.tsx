@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Button, Empty, ErrorBox, PageHeader, Progress, Sheet, Spinner, Stepper, useAction, useConfirm } from '@/components/ui';
 import { api } from '@/lib/api';
 import { dateFmt, kg, rupiah } from '@/lib/format';
-import { linePrice } from '@/lib/pricing';
+import { freeView, linePrice } from '@/lib/pricing';
 import { refreshAll, useApi } from '@/lib/swr';
 import type { FreeOverview, FreeRow, Order, Service } from '@/lib/types';
 
@@ -18,10 +18,11 @@ export default function FreePage() {
 
   return (
     <div>
-      <PageHeader title="FREE" />
+      <PageHeader title="FREE" back="/lainnya" />
       <div className="card border-accent-200 bg-accent-50">
         <p className="flex items-center gap-2 font-bold text-accent-800"><Gift className="h-5 w-5" /> Kumpulkan {data?.threshold ?? 9} nota cuci → 1× cuci GRATIS</p>
         <p className="mt-1 text-sm text-accent-900">Yang dihitung: nota cuci yang sudah <b>lunas</b> dan tidak dibatalkan. Gratis sampai {data ? kg(data.freeKg) : '3 kg'}; kelebihan berat dibayar biasa.</p>
+        <p className="mt-2 text-sm text-accent-900">Hak FREE <b>terus menumpuk dan tidak kedaluwarsa</b> sampai dipakai. Customer tidak dikirimi pemberitahuan; hanya staff dan owner yang melihat halaman ini.</p>
       </div>
 
       {error ? <div className="mt-5"><ErrorBox error={error} retry={() => mutate()} /></div> : !data ? <Spinner /> : (
@@ -32,7 +33,7 @@ export default function FreePage() {
               {data.ready.map((c) => (
                 <div key={c.id} className="card border-green-300 bg-green-50">
                   <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0"><Link href={`/customer/${c.id}`} className="block truncate text-lg font-bold hover:underline">{c.name}</Link><p className="text-sm font-semibold text-green-700">{c.count}/{c.threshold} nota{c.count > c.threshold ? ` (sisa ${c.count - c.threshold} setelah klaim)` : ''}</p></div>
+                    <div className="min-w-0"><Link href={`/customer/${c.id}`} className="block truncate text-lg font-bold hover:underline">{c.name}</Link><p className="text-sm font-semibold text-green-700">{freeView(c).available}× FREE tersedia <span className="font-normal text-slate-600">· menuju berikutnya {freeView(c).cycle}/{c.threshold}</span></p></div>
                     <Button variant="success" onClick={() => setTarget(c)}>Klaim FREE</Button>
                   </div>
                 </div>
@@ -46,8 +47,8 @@ export default function FreePage() {
               {data.progress.map((c) => (
                 <Link key={c.id} href={`/customer/${c.id}`} className="card flex items-center gap-3 p-4">
                   <div className="min-w-0 flex-1">
-                    <div className="mb-1 flex justify-between"><span className="truncate font-bold">{c.name}</span><span className="font-extrabold">{c.count}/{c.threshold}</span></div>
-                    <Progress value={c.count} max={c.threshold} />
+                    <div className="mb-1 flex justify-between"><span className="truncate font-bold">{c.name}</span><span className="font-extrabold">{freeView(c).cycle}/{c.threshold}</span></div>
+                    <Progress value={freeView(c).cycle} max={c.threshold} />
                   </div>
                 </Link>
               ))}
@@ -85,7 +86,7 @@ function ClaimSheet({ row, freeKg, onClose, onDone }: { row: FreeRow; freeKg: nu
 
   const claim = async () => {
     if (!svc) return;
-    const ok = await confirm({ title: `Klaim FREE untuk ${row.name}?`, confirmText: 'Ya, klaim', message: `${row.threshold} nota akan dipakai dan progres kembali ke 0. Nota FREE ${svc.code} ${kg(qty)} dibuat${pay > 0 ? `, customer membayar ${rupiah(pay)}` : ' dengan total Rp 0'}.` });
+    const ok = await confirm({ title: `Klaim FREE untuk ${row.name}?`, confirmText: 'Ya, klaim', message: `${row.threshold} nota akan dipakai${freeView(row).available > 1 ? `, sisa hak FREE ${freeView(row).available - 1}×` : ''}. Nota FREE ${svc.code} ${kg(qty)} dibuat${pay > 0 ? `, customer membayar ${rupiah(pay)}` : ' dengan total Rp 0'}.` });
     if (!ok) return;
     const o = await run(() => api.post<Order>('/free/claim', { customerId: row.id, serviceId: svc.id, qty }), 'Klaim FREE berhasil 🎉');
     if (o) onDone(o);

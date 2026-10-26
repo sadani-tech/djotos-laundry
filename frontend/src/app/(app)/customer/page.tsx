@@ -6,6 +6,7 @@ import { NewCustomerSheet } from '@/components/customer';
 import { Button, Chip, Empty, ErrorBox, PageHeader, Progress, Spinner, useAction } from '@/components/ui';
 import { api } from '@/lib/api';
 import { dateFmt, phoneShow, rupiah, todayStr } from '@/lib/format';
+import { freeView } from '@/lib/pricing';
 import { useApi } from '@/lib/swr';
 import type { Customer } from '@/lib/types';
 
@@ -63,8 +64,9 @@ export default function CustomerPage() {
               <div className="px-2"><p className="text-xs text-slate-500">Terakhir</p><p className="font-bold">{c.lastOrderAt ? dateFmt(c.lastOrderAt, { day: 'numeric', month: 'short' }) : '—'}</p></div>
             </div>
             <div className="mt-3 flex items-center gap-2">
-              <Progress value={c.free.count} max={c.free.threshold} />
-              <span className={`shrink-0 text-xs font-bold ${c.free.eligible ? 'text-green-700' : 'text-slate-500'}`}>{c.free.eligible ? 'FREE siap!' : `FREE ${c.free.count}/${c.free.threshold}`}</span>
+              <Progress value={freeView(c.free).cycle} max={c.free.threshold} />
+              {freeView(c.free).available > 0 && <span className="shrink-0 rounded-full bg-accent-100 px-2 py-0.5 text-xs font-extrabold text-accent-900">FREE ×{freeView(c.free).available}</span>}
+              <span className="shrink-0 text-xs font-bold text-slate-500">{freeView(c.free).cycle}/{c.free.threshold}</span>
             </div>
           </Link>
         ))}
