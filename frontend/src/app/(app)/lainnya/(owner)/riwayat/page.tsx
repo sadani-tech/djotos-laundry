@@ -11,6 +11,7 @@ const LABEL: Record<string, string> = {
   USER_CREATE: 'Akun dibuat', USER_UPDATE: 'Akun diubah', USER_RESET_PASSWORD: 'Password direset', PASSWORD_CHANGE: 'Password diganti', SETTINGS_UPDATE: 'Pengaturan diubah',
   BONUS_RULES_UPDATE: 'Aturan bonus diubah', BONUS_GENERATE: 'Rekap bonus disimpan', BONUS_PAY: 'Bonus dibayar', EXPENSE_CREATE: 'Pengeluaran dicatat', EXPENSE_UPDATE: 'Pengeluaran diubah', EXPENSE_DELETE: 'Pengeluaran dihapus',
   CUSTOMER_CREATE: 'Customer dibuat', CUSTOMER_UPDATE: 'Customer diubah', CUSTOMER_DELETE: 'Customer dihapus',
+  IRONING_CREATE: 'Hasil setrika dicatat', IRONING_UPDATE: 'Hasil setrika diubah', IRONING_DELETE: 'Hasil setrika dihapus',
 };
 
 export default function AuditPage() {

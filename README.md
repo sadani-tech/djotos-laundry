@@ -106,6 +106,7 @@ Database test dibuat dengan: `createdb djotos_test` (atau atur `TEST_DATABASE_UR
 | Cash + QRIS, penanda BELUM BAYAR, Tandai Lunas | halaman nota, daftar order, rekap customer |
 | Cashflow harian/mingguan/bulanan, pembanding Cash vs QRIS, Excel | tab **Cashflow** |
 | Rekapan customer + Excel | tab **Customer** |
+| Hasil setrika harian mandiri, total per customer/pegawai/hari | **Lainnya → Hasil Setrika Harian**; input kg tanpa nota |
 | Akun staff masing-masing, performa | **Lainnya → Staff & Performa** |
 | Bonus staff | **Bonus Saya** / **Bonus Staff** / **Aturan Bonus** |
 | FREE 9× cuci → 1× gratis | **Lainnya → Program FREE** |

@@ -3,6 +3,7 @@
 ## ERD
 ```mermaid
 erDiagram
+  users ||--o{ ironing_entries : "mengerjakan setrika"
   users ||--o{ orders : "menerima (staffId)"
   users ||--o{ payments : "menerima bayar"
   users ||--o{ expenses : "mencatat"
@@ -19,6 +20,7 @@ erDiagram
   free_claims ||--|| orders : "nota FREE (orderId)"
 
   users { int id PK  string username UK  string name  enum role  bool isActive  string passwordHash }
+  ironing_entries { int id PK  int staffId FK  date workDate  string customerName  decimal kg  datetime createdAt  datetime updatedAt  datetime deletedAt }
   customers { int id PK  string name  string phone UK  string address  datetime deletedAt }
   services { int id PK  string code UK  string name  enum category  enum unit  int rate  decimal minQty  int minPrice  enum workType  bool countsForFree  bool isActive }
   orders { int id PK  string invoiceNo UK  int customerId FK  int staffId FK  enum status  int subtotal  int discount  int total  int paidAmount  enum paymentStatus  bool isFree  bool countsForFree  int freeClaimId FK  datetime receivedAt  datetime finishedAt  datetime pickedUpAt  datetime deletedAt }
@@ -59,7 +61,10 @@ erDiagram
 | Bonus | `GET /bonus/rules` · `PUT /bonus/rules` **O** | aturan |
 | | `GET /bonus/me?period=YYYY-MM` | Bonus Saya |
 | | `GET /bonus/summary?period` **O** · `POST /bonus/records/generate` **O** · `PATCH /bonus/records/:id/pay` **O** | |
-| Staff perf | `GET /staff/performance?period` **O** · `GET /staff/daily-recap?date` | omzet, nota, kg (kolom Cuci dan Setrika; cuci+setrika masuk keduanya) · rincian harian |
+| Staff perf | `GET /staff/performance?period=YYYY-MM` **O** | omzet, nota, kg masuk/cuci dari nota; `kgIron` dari hasil setrika mandiri pada bulan pengerjaan |
+| Setrika | `GET /staff/daily-recap?date=YYYY-MM-DD` | `totalKg`, `targetKg`, `staff[]` berisi `totalKg`, `items[]` (total per nama customer), `entries[]` (catatan input untuk koreksi); staff hanya miliknya |
+| | `POST /staff/ironing` · `PATCH /staff/ironing/:id` | `{date, customerName, kg, staffId?}`; PATCH mengirim semua field; `staffId` opsional, hanya owner boleh memilih pegawai lain; kg 0,01–10.000, maksimal 2 desimal |
+| | `DELETE /staff/ironing/:id` | soft delete + audit; staff hanya dapat mengubah/menghapus miliknya |
 | WA | `GET /wa/logs` · `POST /wa/logs/:id/resend` · `POST /wa/test` **O** · `GET /wa/status` | |
 | Pengaturan | `GET /settings` · `PUT /settings` **O** | template WA, toko, FREE |
 | Audit | `GET /audit` **O** | riwayat perubahan |

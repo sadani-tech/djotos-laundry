@@ -29,18 +29,19 @@ export default function StaffPage() {
     <div>
       <PageHeader title="Staff & Performa" back="/lainnya" />
       <MonthNav value={period} onChange={setPeriod} />
+      <p className="mt-3 text-sm text-slate-500">Hasil setrika dihitung dari catatan harian pegawai. Cucian masuk, cuci, dan omzet mengikuti nota yang diinput.</p>
       <div className="mt-5 space-y-4">
         {perf.error ? <ErrorBox error={perf.error} /> : !perf.data ? <Spinner /> : perf.data.length === 0 ? <p className="text-center text-slate-500">Belum ada data.</p> : perf.data.map((p) => (
           <div key={p.userId} className="card">
             <p className="mb-2 text-lg font-bold">{p.name}</p>
             <div className="grid grid-cols-3 gap-3 text-center text-sm">
               <div className="rounded-lg bg-slate-100 p-2"><p className="text-slate-500">Nota</p><p className="font-extrabold">{p.orderCount}</p></div>
-              <div className="rounded-lg bg-slate-100 p-2"><p className="text-slate-500">Cucian</p><p className="font-extrabold">{kg(p.kg)}</p></div>
+              <div className="rounded-lg bg-slate-100 p-2"><p className="text-slate-500">Cucian masuk</p><p className="font-extrabold">{kg(p.kg)}</p></div>
               <div className="rounded-lg bg-slate-100 p-2"><p className="text-slate-500">Omzet</p><p className="font-extrabold">{rupiah(p.omzet)}</p></div>
             </div>
             <div className="mt-3 grid grid-cols-2 gap-3 text-center text-sm" aria-label="Rincian kg per proses">
-              <div className="rounded-lg border border-line p-2"><p className="text-slate-500">Cuci</p><p className="font-extrabold text-brand-700">{kg(p.kgWash ?? 0)}</p></div>
-              <div className="rounded-lg border border-line p-2"><p className="text-slate-500">Setrika</p><p className="font-extrabold text-brand-700">{kg(p.kgIron ?? 0)}</p></div>
+              <div className="rounded-lg border border-line p-2"><p className="text-slate-500">Cuci (nota)</p><p className="font-extrabold text-brand-700">{kg(p.kgWash ?? 0)}</p></div>
+              <div className="rounded-lg border border-line p-2"><p className="text-slate-500">Hasil setrika</p><p className="font-extrabold text-brand-700">{kg(p.kgIron ?? 0)}</p></div>
             </div>
             {p.unpaid > 0 && <p className="mt-2 text-sm font-semibold text-red-600">Belum dibayar customer: {rupiah(p.unpaid)}</p>}
           </div>

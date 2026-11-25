@@ -18,3 +18,16 @@ Tes otomatis: `cd backend && npm run test:all` (20 unit + 63 e2e, memakai databa
 
 ## Mencoba kegagalan WA
 Set `WA_PROVIDER=fonnte` tanpa token → pesan gagal dengan alasan jelas ("FONNTE_TOKEN belum diisi"), BullMQ mencoba ulang 3× (backoff 5 dtk, 10 dtk), lalu status **Gagal** + tombol **Kirim ulang**.
+
+## Hasil Setrika Harian (mandiri)
+1. Buka **Lainnya → Hasil Setrika Harian**, pilih tanggal, lalu **Catat hasil setrika**.
+2. Masuk sebagai Fani; catat Bu Siti 3,5 kg, Bu Siti 1,25 kg, Pak Budi 2 kg. Tidak perlu nota atau master customer. Total Bu Siti = 4,75 kg, total Fani = 6,75 kg.
+3. Masuk sebagai Ana; catat Bu Siti 2 kg pada tanggal yang sama. Ana hanya melihat 2 kg miliknya. Owner melihat Fani 6,75 kg + Ana 2 kg, total harian 8,75 kg.
+4. Owner bisa memilih pegawai yang mengerjakan ketika menambah catatan. Nota yang diterima Fani tidak otomatis menambah hasil setrika Fani/Ana.
+5. Buka **Catatan input**, ubah nama/berat/tanggal, lalu hapus satu catatan. Total customer/pegawai/harian harus ikut berubah; catatan muncul di **Riwayat Perubahan**.
+6. Di **Staff & Performa**, pastikan Hasil setrika mengikuti bulan pengerjaan (termasuk batas akhir bulan), sementara cuci/omzet mengikuti nota. Tidak ada pengisian otomatis dari nota lama.
+7. Nama kosong, tanggal tidak valid, kg nol/negatif, dan lebih dari 2 desimal ditolak. Staff tidak bisa memilih atau mengubah catatan pegawai lain.
+
+Screenshot hasil uji dengan data contoh: [rekap mobile](screenshots/hasil-setrika-mobile.png), [input mobile](screenshots/hasil-setrika-input-mobile.png), dan [rekap owner desktop](screenshots/hasil-setrika-desktop.png).
+
+Verifikasi perubahan: backend build, 20 unit test dan 67 e2e test lulus di PostgreSQL/Redis lokal terisolasi; frontend typecheck dan production build lulus. Uji browser mencakup tambah/ubah/hapus, desimal koma, owner memilih pegawai, filter tanggal, isolasi data staff, serta lebar 320/390/1440 px tanpa overflow horizontal. Migrasi `20261119090000_hasil_setrika_mandiri` sudah diuji pada database test dan perlu diterapkan saat deploy backend.

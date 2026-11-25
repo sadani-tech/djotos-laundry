@@ -22,7 +22,9 @@
 
 ## Jenis kerja & performa staff
 Tiap layanan per kg punya **jenis kerja**: **Cuci** (CB, CBX), **Setrika** (ST, STX), atau **Cuci + Setrika** sekaligus (CK, CKX); satuan = Lainnya. Jenis kerja disalin ke item nota saat nota dibuat, jadi mengubah layanan tidak mengubah nota lama.
-Di **Staff & Performa** dan **Rekap Harian**, kg dipisah menjadi dua kolom, **Cuci** dan **Setrika**, atas nama **staff yang menginput nota**. Layanan cuci saja masuk ke Cuci, setrika saja masuk ke Setrika, dan layanan cuci + setrika (CK, CKX) **menambah kedua kolom sekaligus**, jadi Cuci + Setrika bisa lebih besar dari total kg. Alur status nota tidak berubah.
+Mulai perubahan November 2026, **Hasil Setrika Harian** dicatat mandiri: tanggal selesai setrika (tanggal lokal WIB), pegawai yang mengerjakan, nama customer, dan kg (maksimal 2 desimal). Tidak ada relasi ke nota atau cucian masuk; customer boleh langsung diketik tanpa membuat master customer. Nama dengan perbedaan huruf besar/kecil dan spasi digabung per pegawai per tanggal. Nama yang sama memang dianggap customer yang sama dalam rekap tersebut.
+Rekap menampilkan total per customer, per pegawai, dan total tanggal yang dipilih. Staff hanya dapat mencatat, mengubah, menghapus, dan melihat hasil sendiri; owner dapat mengelola semua pegawai. Hapus bersifat soft delete, perubahan dicatat dalam audit.
+Di **Staff & Performa**, kolom **Hasil setrika** berasal dari catatan mandiri berdasarkan tanggal pengerjaan. Kolom cucian masuk/cuci/omzet tetap berasal dari nota atas nama penerima. Nota lama tidak otomatis dikonversi menjadi hasil setrika karena penerima belum tentu pelaksana. Perhitungan bonus tetap memakai aturan dan dasar nota yang sudah ada.
 Estimasi jam/hari selesai **tidak dipakai** (dihapus dari order dan dari data layanan).
 
 ## Rumus harga

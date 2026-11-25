@@ -551,6 +551,9 @@ describe('Djotos Laundry API', () => {
       expect(f.kg).toBeGreaterThan(0);
       await fani.get('/staff/performance').expect(403);
 
+      const date = new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 10);
+      await fani.post('/staff/ironing', { date, customerName: 'Pelanggan Fani', kg: 3 }).expect(201);
+      await ana.post('/staff/ironing', { date, customerName: 'Pelanggan Ana', kg: 2 }).expect(201);
       const d = (await owner.get('/staff/daily-recap')).body;
       expect(d.hari).toBeTruthy();
       expect(d.staff.map((s: any) => s.name)).toEqual(expect.arrayContaining(['Fani', 'Ana']));
@@ -559,7 +562,7 @@ describe('Djotos Laundry API', () => {
       expect(own.staff[0].items[0]).toHaveProperty('kg');
     });
 
-    it('performa & rekap harian: kg Cuci dan kg Setrika; layanan cuci+setrika masuk ke keduanya', async () => {
+    it('cuci mengikuti nota, hasil setrika hanya dari catatan pengerjaan mandiri', async () => {
       await owner.post('/users', { name: 'Dewi', username: 'dewi', password: 'dewi1234' }).expect(201);
       const dewi = makeApi(app, (await login(app, 'dewi', 'dewi1234')).token);
       const cust = (await dewi.post('/customers', { name: 'Uji Jenis Kerja' }).expect(201)).body.id;
@@ -574,12 +577,17 @@ describe('Djotos Laundry API', () => {
       expect(o.body.items.map((i: any) => i.workType)).toEqual(['WASH', 'WASH', 'IRON', 'WASH_IRON', 'WASH_IRON', 'OTHER']);
 
       const perf = (await owner.get(`/staff/performance?period=${period}`)).body.find((x: any) => x.name === 'Dewi');
-      // Cuci = CB 4 + CBX 3 + CK 6 + CKX 2 = 15 ; Setrika = ST 5 + CK 6 + CKX 2 = 13 ; total kg unik = 20
-      expect(perf).toMatchObject({ kg: 20, kgWash: 15, kgIron: 13 });
+      // Cuci = CB 4 + CBX 3 + CK 6 + CKX 2 = 15; nota tidak menambah hasil setrika.
+      expect(perf).toMatchObject({ kg: 20, kgWash: 15, kgIron: 0 });
       expect(perf).not.toHaveProperty('kgWashIron');
 
+      expect((await dewi.get('/staff/daily-recap')).body.staff).toEqual([]);
+      const date = new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 10);
+      await dewi.post('/staff/ironing', { date, customerName: 'Hasil kerja Dewi', kg: 7.5 }).expect(201);
       const rec = (await dewi.get('/staff/daily-recap')).body.staff[0];
-      expect(rec).toMatchObject({ name: 'Dewi', totalKg: 20, kgWash: 15, kgIron: 13 });
+      expect(rec).toMatchObject({ name: 'Dewi', totalKg: 7.5 });
+      const updated = (await owner.get(`/staff/performance?period=${period}`)).body.find((x: any) => x.name === 'Dewi');
+      expect(updated).toMatchObject({ kg: 20, kgWash: 15, kgIron: 7.5 });
     });
 
     it('jenis kerja tersimpan pada nota (snapshot): mengubah layanan tidak mengubah nota lama', async () => {
