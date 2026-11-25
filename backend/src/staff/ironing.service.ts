@@ -7,6 +7,17 @@ import { roundKg } from '../common/pricing';
 import { hariName, Range, periodRange } from '../common/time';
 import { SettingsService } from '../settings/settings.service';
 
+interface IroningEntry {
+  id: number;
+  orderId: number;
+  invoiceNo: string;
+  customerName: string;
+  kg: number;
+  completedAt: Date;
+}
+
+interface IroningCustomer { customerId: number; name: string; kg: number }
+interface IroningStaff { userId: number; name: string; totalKg: number; entries: IroningEntry[]; items: Map<number, IroningCustomer> }
 interface IroningWork {
   auditId: number;
   orderId: number;
@@ -72,16 +83,10 @@ export class IroningService {
     const range = periodRange('day', date);
     const [allWork, cfg] = await Promise.all([this.completedWork(range), this.settings.get()]);
     const work = user.role === Role.STAFF ? allWork.filter((row) => row.staffId === user.id) : allWork;
-    const staff = new Map<number, {
-      userId: number;
-      name: string;
-      totalKg: number;
-      entries: { id: number; orderId: number; invoiceNo: string; customerName: string; kg: number; completedAt: Date }[];
-      items: Map<number, { customerId: number; name: string; kg: number }>;
-    }>();
+    const staff = new Map<number, IroningStaff>();
     for (const row of work) {
       const kg = Number(row.kg);
-      const s = staff.get(row.staffId) ?? { userId: row.staffId, name: row.staffName, totalKg: 0, entries: [], items: new Map() };
+      const s: IroningStaff = staff.get(row.staffId) ?? { userId: row.staffId, name: row.staffName, totalKg: 0, entries: [], items: new Map<number, IroningCustomer>() };
       s.totalKg += kg;
       s.entries.push({ id: row.auditId, orderId: row.orderId, invoiceNo: row.invoiceNo, customerName: row.customerName, kg, completedAt: row.completedAt });
       const item = s.items.get(row.customerId) ?? { customerId: row.customerId, name: row.customerName, kg: 0 };
