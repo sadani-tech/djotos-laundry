@@ -14,7 +14,7 @@ type Filter = 'today' | 'unpaid' | 'process' | 'ready' | 'all';
 const FILTERS: { key: Filter; label: string; query: (today: string) => string }[] = [
   { key: 'today', label: 'Hari ini', query: (t) => `date=${t}` },
   { key: 'unpaid', label: 'Belum Bayar', query: () => 'payment=unpaid' },
-  { key: 'process', label: 'Diproses', query: () => 'status=RECEIVED,PROCESSING' },
+  { key: 'process', label: 'Diproses', query: () => 'status=RECEIVED,WASHING,IRONING' },
   { key: 'ready', label: 'Siap Diambil', query: () => 'status=FINISHED' },
   { key: 'all', label: 'Semua', query: () => '' },
 ];

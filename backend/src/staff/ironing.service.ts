@@ -1,20 +1,22 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Role } from '@prisma/client';
-import { AuditService } from '../audit/audit.service';
 import { AuthUser } from '../common/auth';
-import { bad, notFound } from '../common/errors';
+import { bad } from '../common/errors';
 import { PrismaService } from '../common/prisma.service';
 import { roundKg } from '../common/pricing';
-import { hariName, Range } from '../common/time';
+import { hariName, Range, periodRange } from '../common/time';
 import { SettingsService } from '../settings/settings.service';
-import { IroningEntryDto } from './ironing.dto';
 
-interface IroningStaff {
-  userId: number;
-  name: string;
-  totalKg: number;
-  entries: { id: number; customerName: string; kg: number }[];
-  items: Map<string, { name: string; kg: number }>;
+interface IroningWork {
+  auditId: number;
+  orderId: number;
+  invoiceNo: string;
+  customerId: number;
+  customerName: string;
+  staffId: number;
+  staffName: string;
+  completedAt: Date;
+  kg: number;
 }
 
 function workDate(date: string) {
@@ -27,86 +29,70 @@ function workDate(date: string) {
 
 @Injectable()
 export class IroningService {
-  constructor(private prisma: PrismaService, private audit: AuditService, private settings: SettingsService) {}
+  constructor(private prisma: PrismaService, private settings: SettingsService) {}
 
-  private scope(user: AuthUser) {
-    return { deletedAt: null, ...(user.role === Role.STAFF ? { staffId: user.id } : {}) };
-  }
-
-  private async data(dto: IroningEntryDto, actor: AuthUser, existingStaffId?: number) {
-    const staffId = dto.staffId ?? existingStaffId ?? actor.id;
-    if (actor.role === Role.STAFF && staffId !== actor.id) throw new ForbiddenException('Hanya dapat mencatat hasil setrika sendiri');
-    const staff = await this.prisma.user.findUnique({ where: { id: staffId }, select: { isActive: true } });
-    if (!staff || (!staff.isActive && staffId !== existingStaffId)) throw bad('Pegawai tidak ditemukan atau tidak aktif');
-    const customerName = dto.customerName.trim().replace(/\s+/g, ' ');
-    if (!customerName) throw bad('Nama customer wajib diisi');
-    return { staffId, workDate: workDate(dto.date), customerName, kg: dto.kg };
-  }
-
-  async create(dto: IroningEntryDto, actor: AuthUser) {
-    const data = await this.data(dto, actor);
-    return this.prisma.$transaction(async (tx) => {
-      const entry = await tx.ironingEntry.create({ data });
-      await this.audit.log({ userId: actor.id, action: 'IRONING_CREATE', entity: 'IroningEntry', entityId: entry.id, after: entry }, tx);
-      return { ...entry, kg: Number(entry.kg) };
-    });
-  }
-
-  async update(id: number, dto: IroningEntryDto, actor: AuthUser) {
-    const before = await this.prisma.ironingEntry.findFirst({ where: { id, ...this.scope(actor) } });
-    if (!before) throw notFound('Catatan setrika');
-    const data = await this.data(dto, actor, before.staffId);
-    return this.prisma.$transaction(async (tx) => {
-      const entry = await tx.ironingEntry.update({ where: { id, ...this.scope(actor) }, data });
-      await this.audit.log({ userId: actor.id, action: 'IRONING_UPDATE', entity: 'IroningEntry', entityId: id, before, after: entry }, tx);
-      return { ...entry, kg: Number(entry.kg) };
-    });
-  }
-
-  async remove(id: number, actor: AuthUser) {
-    return this.prisma.$transaction(async (tx) => {
-      const before = await tx.ironingEntry.findFirst({ where: { id, ...this.scope(actor) } });
-      if (!before) throw notFound('Catatan setrika');
-      const entry = await tx.ironingEntry.update({ where: { id, ...this.scope(actor) }, data: { deletedAt: new Date() } });
-      await this.audit.log({ userId: actor.id, action: 'IRONING_DELETE', entity: 'IroningEntry', entityId: id, before, after: entry }, tx);
-      return { ok: true };
-    });
+  /**
+   * Sumber rekap adalah penyelesaian tahap Setrika pada nota yang sudah ada.
+   * Satu nota dihitung sekali, dari perubahan status terakhir IRONING -> FINISHED.
+   */
+  private completedWork(range: Range) {
+    return this.prisma.$queryRaw<IroningWork[]>`
+      WITH completed AS (
+        SELECT DISTINCT ON (a."entityId") a.id, a."entityId" AS "orderId", a."userId" AS "staffId", a."createdAt"
+        FROM audit_logs a
+        WHERE a.entity = 'Order' AND a.action = 'ORDER_STATUS'
+          AND a."before"->>'status' = 'IRONING'
+          AND a."after"->>'status' = 'FINISHED'
+        ORDER BY a."entityId", a."createdAt" DESC, a.id DESC
+      )
+      SELECT c.id AS "auditId", o.id AS "orderId", o."invoiceNo",
+        customer.id AS "customerId", customer.name AS "customerName",
+        u.id AS "staffId", u.name AS "staffName", c."createdAt" AS "completedAt",
+        COALESCE(SUM(i.qty) FILTER (WHERE i.unit = 'KG' AND i."workType" IN ('IRON', 'WASH_IRON')), 0)::float AS kg
+      FROM completed c
+      JOIN orders o ON o.id = c."orderId"
+      JOIN customers customer ON customer.id = o."customerId"
+      JOIN users u ON u.id = c."staffId"
+      JOIN order_items i ON i."orderId" = o.id
+      WHERE c."createdAt" >= ${range.start} AND c."createdAt" < ${range.end}
+      GROUP BY c.id, o.id, o."invoiceNo", customer.id, customer.name, u.id, u.name, c."createdAt"
+      HAVING COALESCE(SUM(i.qty) FILTER (WHERE i.unit = 'KG' AND i."workType" IN ('IRON', 'WASH_IRON')), 0) > 0
+      ORDER BY c."createdAt", o."invoiceNo"`;
   }
 
   async monthlyTotals(range: Range) {
-    const rows = await this.prisma.ironingEntry.groupBy({
-      by: ['staffId'],
-      where: { deletedAt: null, workDate: { gte: workDate(range.fromStr), lte: workDate(range.toStr) } },
-      _sum: { kg: true },
-    });
-    return new Map(rows.map((r) => [r.staffId, Number(r._sum.kg ?? 0)]));
+    const rows = await this.completedWork(range);
+    const totals = new Map<number, number>();
+    for (const row of rows) totals.set(row.staffId, (totals.get(row.staffId) ?? 0) + Number(row.kg));
+    return new Map([...totals].map(([staffId, kg]) => [staffId, roundKg(kg)]));
   }
 
   async dailyRecap(user: AuthUser, date: string) {
-    const day = workDate(date);
-    const [entries, cfg] = await Promise.all([
-      this.prisma.ironingEntry.findMany({
-        where: { ...this.scope(user), workDate: day },
-        include: { staff: { select: { name: true } } }, orderBy: { id: 'asc' },
-      }),
-      this.settings.get(),
-    ]);
-    const staff = new Map<number, IroningStaff>();
-    for (const e of entries) {
-      const s: IroningStaff = staff.get(e.staffId) ?? { userId: e.staffId, name: e.staff.name, totalKg: 0, entries: [], items: new Map() };
-      const kg = Number(e.kg);
+    workDate(date);
+    const range = periodRange('day', date);
+    const [allWork, cfg] = await Promise.all([this.completedWork(range), this.settings.get()]);
+    const work = user.role === Role.STAFF ? allWork.filter((row) => row.staffId === user.id) : allWork;
+    const staff = new Map<number, {
+      userId: number;
+      name: string;
+      totalKg: number;
+      entries: { id: number; orderId: number; invoiceNo: string; customerName: string; kg: number; completedAt: Date }[];
+      items: Map<number, { customerId: number; name: string; kg: number }>;
+    }>();
+    for (const row of work) {
+      const kg = Number(row.kg);
+      const s = staff.get(row.staffId) ?? { userId: row.staffId, name: row.staffName, totalKg: 0, entries: [], items: new Map() };
       s.totalKg += kg;
-      s.entries.push({ id: e.id, customerName: e.customerName, kg });
-      const key = e.customerName.toLocaleLowerCase('id-ID');
-      const item = s.items.get(key) ?? { name: e.customerName, kg: 0 };
+      s.entries.push({ id: row.auditId, orderId: row.orderId, invoiceNo: row.invoiceNo, customerName: row.customerName, kg, completedAt: row.completedAt });
+      const item = s.items.get(row.customerId) ?? { customerId: row.customerId, name: row.customerName, kg: 0 };
       item.kg += kg;
-      s.items.set(key, item);
-      staff.set(e.staffId, s);
+      s.items.set(row.customerId, item);
+      staff.set(row.staffId, s);
     }
     return {
       date, hari: hariName(date), targetKg: cfg.staff.dailyTargetKg,
-      totalKg: roundKg(entries.reduce((sum, e) => sum + Number(e.kg), 0)),
-      staff: [...staff.values()].map((s) => ({ ...s, totalKg: roundKg(s.totalKg), items: [...s.items.values()].map((i) => ({ ...i, kg: roundKg(i.kg) })) }))
+      totalKg: roundKg(work.reduce((sum, row) => sum + Number(row.kg), 0)),
+      staff: [...staff.values()].map((s) => ({ ...s, totalKg: roundKg(s.totalKg), entries: s.entries.map((e) => ({ ...e, kg: roundKg(e.kg) })), items: [...s.items.values()].map((i) => ({ ...i, kg: roundKg(i.kg) })) }))
         .sort((a, b) => b.totalKg - a.totalKg || a.name.localeCompare(b.name, 'id')),
     };
   }

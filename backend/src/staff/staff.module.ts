@@ -1,11 +1,10 @@
-import { Body, Controller, Delete, Get, Injectable, Module, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
+import { Controller, Get, Injectable, Module, Query } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { AuthUser, CurrentUser, OwnerOnly } from '../common/auth';
 import { bad } from '../common/errors';
 import { roundKg } from '../common/pricing';
 import { PrismaService } from '../common/prisma.service';
 import { Range, currentPeriod, isPeriodStr, monthRange, todayStr } from '../common/time';
-import { IroningEntryDto } from './ironing.dto';
 import { IroningService } from './ironing.service';
 
 export interface StaffStats {
@@ -13,7 +12,7 @@ export interface StaffStats {
   omzet: number; // total semua nota (tidak batal)
   unpaid: number;
   kg: number;
-  // Kg cuci dari nota; hasil setrika mandiri ditambahkan di performance().
+  // Hasil setrika dari pesanan yang tahap setrikanya ditandai selesai.
   kgWash: number;
   // Dasar bonus: hanya nota lunas & bukan FREE
   bonusOrders: number;
@@ -80,7 +79,7 @@ export class StaffStatsService {
       .sort((a, b) => b.omzet - a.omzet);
   }
 
-  /** Hasil setrika mandiri berdasarkan tanggal pengerjaan, bukan tanggal nota. */
+  /** Hasil setrika berdasarkan waktu tahap Setrika pada nota ditandai selesai. */
   dailyRecap(user: AuthUser, date: string) {
     return this.ironing.dailyRecap(user, date);
   }
@@ -88,26 +87,11 @@ export class StaffStatsService {
 
 @Controller('staff')
 export class StaffController {
-  constructor(private stats: StaffStatsService, private ironing: IroningService) {}
+  constructor(private stats: StaffStatsService) {}
 
   @OwnerOnly() @Get('performance')
   performance(@Query('period') period: string = currentPeriod()) {
     return this.stats.performance(period);
-  }
-
-  @Post('ironing')
-  createIroning(@Body() dto: IroningEntryDto, @CurrentUser() user: AuthUser) {
-    return this.ironing.create(dto, user);
-  }
-
-  @Patch('ironing/:id')
-  updateIroning(@Param('id', ParseIntPipe) id: number, @Body() dto: IroningEntryDto, @CurrentUser() user: AuthUser) {
-    return this.ironing.update(id, dto, user);
-  }
-
-  @Delete('ironing/:id')
-  removeIroning(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: AuthUser) {
-    return this.ironing.remove(id, user);
   }
 
   @Get('daily-recap')

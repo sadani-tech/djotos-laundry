@@ -1,5 +1,5 @@
 export type Role = 'OWNER' | 'STAFF';
-export type OrderStatus = 'RECEIVED' | 'PROCESSING' | 'FINISHED' | 'PICKED_UP' | 'CANCELLED';
+export type OrderStatus = 'RECEIVED' | 'WASHING' | 'IRONING' | 'FINISHED' | 'PICKED_UP' | 'CANCELLED';
 export type PaymentStatus = 'UNPAID' | 'PARTIAL' | 'PAID';
 export type PayMethod = 'CASH' | 'QRIS';
 export type WorkType = 'WASH' | 'IRON' | 'WASH_IRON' | 'OTHER';
@@ -19,7 +19,8 @@ export interface Customer {
   orderCount: number; totalKg: number; totalSpent: number; unpaid: number; lastOrderAt: string | null; free: FreeProgress;
 }
 
-export interface OrderItem { id: number; serviceId: number; code: string; name: string; unit: 'KG' | 'PCS'; qty: number; unitPrice: number; subtotal: number }
+export interface OrderItem { id: number; serviceId: number; code: string; name: string; unit: 'KG' | 'PCS'; workType: WorkType; qty: number; unitPrice: number; subtotal: number }
+export interface StatusHistory { id: number; createdAt: string; before: { status: OrderStatus } | null; after: { status: OrderStatus } | null; user: { id: number; name: string } | null }
 export interface Payment { id: number; method: PayMethod; amount: number; paidAt: string; receivedBy: { id: number; name: string } }
 export interface WaLog {
   id: number; phone: string; message: string; type: 'FINISHED' | 'FREE_READY' | 'MANUAL' | 'TEST'; status: 'QUEUED' | 'SENT' | 'FAILED';
@@ -33,7 +34,7 @@ export interface Order {
   note: string | null; receivedAt: string; finishedAt: string | null; pickedUpAt: string | null;
   customer: { id: number; name: string; phone: string | null };
   staff: { id: number; name: string };
-  items: OrderItem[]; payments: Payment[]; waLogs?: WaLog[]; freeClaimId?: number | null;
+  items: OrderItem[]; payments: Payment[]; waLogs?: WaLog[]; statusHistory?: StatusHistory[]; freeClaimId?: number | null;
   /** Jumlah FREE yang bisa diklaim customer nota ini (hanya untuk staff/owner). */
   freeAvailable?: number;
 }

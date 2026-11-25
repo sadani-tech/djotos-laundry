@@ -7,18 +7,23 @@ import { rupiah, timeFmt, dateFmt, kg } from '@/lib/format';
 import { refreshAll } from '@/lib/swr';
 import type { Order, OrderStatus } from '@/lib/types';
 
-/** Langkah berikutnya di alur: Diterima → Diproses → Selesai → Diambil. */
-export const NEXT_STATUS: Partial<Record<OrderStatus, { to: OrderStatus; label: string; hint: string }>> = {
-  RECEIVED: { to: 'PROCESSING', label: 'Mulai Proses', hint: 'Cucian mulai dikerjakan.' },
-  PROCESSING: { to: 'FINISHED', label: 'Tandai Selesai', hint: 'Customer akan otomatis dikirimi WhatsApp bahwa cucian sudah selesai.' },
-  FINISHED: { to: 'PICKED_UP', label: 'Sudah Diambil', hint: 'Cucian sudah diserahkan ke customer.' },
-};
-
+/** Langkah berikutnya menyesuaikan jenis layanan pada nota. */
+export function nextStatus(order: Order): { to: OrderStatus; label: string; hint: string } | undefined {
+  if (order.status === 'CANCELLED') return undefined;
+  const types = order.items.map((item) => item.workType);
+  const steps: { to: OrderStatus; label: string; hint: string }[] = [];
+  if (types.some((type) => type === 'WASH' || type === 'WASH_IRON')) steps.push({ to: 'WASHING', label: 'Mulai Cuci', hint: 'Cucian mulai dikerjakan.' });
+  if (types.some((type) => type === 'IRON' || type === 'WASH_IRON')) steps.push({ to: 'IRONING', label: 'Mulai Setrika', hint: 'Cucian masuk tahap setrika.' });
+  steps.push({ to: 'FINISHED', label: 'Tandai Selesai', hint: 'Customer akan otomatis dikirimi WhatsApp bahwa cucian sudah selesai.' });
+  steps.push({ to: 'PICKED_UP', label: 'Sudah Diambil', hint: 'Cucian sudah diserahkan ke customer.' });
+  const current = order.status === 'RECEIVED' ? -1 : steps.findIndex((step) => step.to === order.status);
+  return steps[current + 1];
+}
 /** Tombol langkah berikutnya dengan konfirmasi. Dipakai di kartu order dan halaman detail. */
 export function AdvanceButton({ order, size = 'md', onDone, className }: { order: Order; size?: 'sm' | 'md' | 'lg'; onDone?: () => void; className?: string }) {
   const confirm = useConfirm();
   const { run, busy } = useAction();
-  const next = NEXT_STATUS[order.status];
+  const next = nextStatus(order);
   if (!next) return null;
   const go = async () => {
     const unpaidWarn = next.to === 'PICKED_UP' && order.paymentStatus !== 'PAID' && !order.isFree;
@@ -69,7 +74,7 @@ export function OrderCard({ order, showDate }: { order: Order; showDate?: boolea
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100"><ChevronRight className="h-4 w-4 text-slate-400" /></span>
         </div>
       </Link>
-      {NEXT_STATUS[order.status] && (
+      {nextStatus(order) && (
         <div className="border-t border-slate-100 bg-surface/50 px-4 py-2.5">
           <AdvanceButton order={order} size="sm" className="w-full" />
         </div>

@@ -12,8 +12,12 @@ import { PaymentsService, paymentStatusOf } from '../payments/payments.module';
 import { WaService } from '../wa/wa.service';
 import { CreateOrderDto, UpdateOrderDto } from './orders.dto';
 
-/** Urutan status maju. CANCELLED ditangani terpisah. */
-const FLOW: OrderStatus[] = [OrderStatus.RECEIVED, OrderStatus.PROCESSING, OrderStatus.FINISHED, OrderStatus.PICKED_UP];
+/** Tahap kerja mengikuti jenis layanan yang tercatat pada nota. */
+const flowFor = (workTypes: string[]): OrderStatus[] => {
+  const hasWash = workTypes.some((type) => type === 'WASH' || type === 'WASH_IRON');
+  const hasIron = workTypes.some((type) => type === 'IRON' || type === 'WASH_IRON');
+  return [OrderStatus.RECEIVED, ...(hasWash ? [OrderStatus.WASHING] : []), ...(hasIron ? [OrderStatus.IRONING] : []), OrderStatus.FINISHED, OrderStatus.PICKED_UP];
+};
 
 export interface NewOrderInput {
   customerId: number;
@@ -124,9 +128,12 @@ export class OrdersService {
   async get(id: number, _user?: AuthUser) {
     const order = await this.prisma.order.findFirst({ where: { id, deletedAt: null }, include: ORDER_INCLUDE });
     if (!order) throw notFound('Nota');
-    const waLogs = await this.prisma.waLog.findMany({ where: { orderId: id }, orderBy: { id: 'desc' }, take: 5 });
+    const [waLogs, statusHistory] = await Promise.all([
+      this.prisma.waLog.findMany({ where: { orderId: id }, orderBy: { id: 'desc' }, take: 5 }),
+      this.prisma.auditLog.findMany({ where: { entity: 'Order', entityId: id, action: 'ORDER_STATUS' }, orderBy: { id: 'asc' }, include: { user: { select: { id: true, name: true } } } }),
+    ]);
     const [withFree] = await this.loyalty.withFreeAvailable([orderView(order)]);
-    return { ...withFree, waLogs };
+    return { ...withFree, waLogs, statusHistory };
   }
 
   async list(user: AuthUser, q: { date?: string; status?: string; payment?: string; q?: string; mine?: boolean; customerId?: number; limit?: number }) {
@@ -165,17 +172,22 @@ export class OrdersService {
     if (!order) throw notFound('Nota');
     if (order.status === OrderStatus.CANCELLED) throw bad('Nota sudah dibatalkan');
     if (order.status === to) throw bad('Nota sudah berstatus itu');
-    const from = FLOW.indexOf(order.status);
-    const target = FLOW.indexOf(to);
+    const items = await this.prisma.orderItem.findMany({ where: { orderId: id }, select: { workType: true } });
+    const flow = flowFor(items.map((item) => item.workType));
+    const from = flow.indexOf(order.status);
+    const target = flow.indexOf(to);
+    if (target < 0) throw bad('Status tidak sesuai tahap kerja cucian');
     if (target < from && user.role !== Role.OWNER) throw bad('Hanya Owner yang boleh memundurkan status');
+    if (target > from + 1) throw bad('Status harus dilanjutkan sesuai tahap kerja cucian');
 
     const data: Prisma.OrderUpdateInput = { status: to };
     if (to === OrderStatus.FINISHED) data.finishedAt = new Date();
+    else if (to === OrderStatus.WASHING || to === OrderStatus.IRONING) data.finishedAt = null;
     if (to === OrderStatus.PICKED_UP) {
       data.pickedUpAt = new Date();
       if (!order.finishedAt) data.finishedAt = new Date();
     }
-    if (target < FLOW.indexOf(OrderStatus.PICKED_UP)) data.pickedUpAt = null;
+    if (target < flow.indexOf(OrderStatus.PICKED_UP)) data.pickedUpAt = null;
     await this.prisma.$transaction(async (tx) => {
       await tx.order.update({ where: { id }, data });
       await this.audit.log({ userId: user.id, action: 'ORDER_STATUS', entity: 'Order', entityId: id, before: { status: order.status }, after: { status: to } }, tx);

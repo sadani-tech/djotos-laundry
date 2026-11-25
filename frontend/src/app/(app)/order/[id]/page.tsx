@@ -11,14 +11,7 @@ import { dateTimeFmt, phoneShow, qtyLabel, rupiah, waLink } from '@/lib/format';
 import { refreshAll, useApi } from '@/lib/swr';
 import type { Order, OrderStatus, PayMethod } from '@/lib/types';
 
-const STEPS: { s: OrderStatus; label: string; at: (o: Order) => string | null }[] = [
-  { s: 'RECEIVED', label: 'Diterima', at: (o) => o.receivedAt },
-  { s: 'PROCESSING', label: 'Diproses', at: () => null },
-  { s: 'FINISHED', label: 'Selesai', at: (o) => o.finishedAt },
-  { s: 'PICKED_UP', label: 'Diambil', at: (o) => o.pickedUpAt },
-];
-const ORDER_IDX: Record<OrderStatus, number> = { RECEIVED: 0, PROCESSING: 1, FINISHED: 2, PICKED_UP: 3, CANCELLED: -1 };
-
+const ORDER_IDX: Record<OrderStatus, number> = { RECEIVED: 0, WASHING: 1, IRONING: 2, FINISHED: 3, PICKED_UP: 4, CANCELLED: -1 };
 function Detail() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -36,7 +29,16 @@ function Detail() {
 
   const reload = () => { mutate(); refreshAll(); };
   const cancelled = o.status === 'CANCELLED';
-  const idx = ORDER_IDX[o.status];
+  const hasWash = o.items.some((item) => item.workType === 'WASH' || item.workType === 'WASH_IRON');
+  const hasIron = o.items.some((item) => item.workType === 'IRON' || item.workType === 'WASH_IRON');
+  const steps: { s: OrderStatus; label: string; at: string | null; actor?: string }[] = [
+    { s: 'RECEIVED', label: 'Diterima', at: o.receivedAt, actor: o.staff.name },
+    ...(hasWash ? [{ s: 'WASHING' as OrderStatus, label: 'Cuci', at: o.statusHistory?.slice().reverse().find((h) => h.after?.status === 'WASHING')?.createdAt ?? null, actor: o.statusHistory?.slice().reverse().find((h) => h.after?.status === 'WASHING')?.user?.name }] : []),
+    ...(hasIron ? [{ s: 'IRONING' as OrderStatus, label: 'Setrika', at: o.statusHistory?.slice().reverse().find((h) => h.after?.status === 'IRONING')?.createdAt ?? null, actor: o.statusHistory?.slice().reverse().find((h) => h.after?.status === 'IRONING')?.user?.name }] : []),
+    { s: 'FINISHED', label: 'Selesai', at: o.finishedAt, actor: o.statusHistory?.slice().reverse().find((h) => h.after?.status === 'FINISHED')?.user?.name },
+    { s: 'PICKED_UP', label: 'Diambil', at: o.pickedUpAt, actor: o.statusHistory?.slice().reverse().find((h) => h.after?.status === 'PICKED_UP')?.user?.name },
+  ];
+  const idx = steps.findIndex((step) => step.s === o.status);
 
   const payFull = async (method: PayMethod) => {
     const ok = await confirm({
@@ -112,11 +114,11 @@ function Detail() {
       {!cancelled && (
         <div className="card mb-4">
           <ol className="flex items-start justify-between">
-            {STEPS.map((st, i) => (
+            {steps.map((st, i) => (
               <li key={st.s} className="flex flex-1 flex-col items-center text-center">
                 <span className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${i <= idx ? 'bg-brand-600 text-white' : 'bg-slate-200 text-slate-500'}`}>{i < idx ? '✓' : i + 1}</span>
                 <span className={`mt-1 text-xs font-semibold ${i === idx ? 'text-brand-700' : 'text-slate-500'}`}>{st.label}</span>
-                <span className="text-[10px] text-slate-400">{i <= idx && st.at(o) ? dateTimeFmt(st.at(o)!) : ''}</span>
+                <span className="text-[10px] text-slate-400">{i <= idx && st.at ? dateTimeFmt(st.at) : ''}{i <= idx && st.actor ? ` · ${st.actor}` : ''}</span>
               </li>
             ))}
           </ol>

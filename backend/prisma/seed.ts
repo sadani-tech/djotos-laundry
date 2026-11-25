@@ -111,7 +111,7 @@ async function seedSample() {
   await addOrder({ c: 'B. Nico', staff: fani, daysAgo: 2, items: [['CK', 7]], pay: null }); // belum bayar
   // Hari ini
   await addOrder({ c: 'Rifa', staff: fani, daysAgo: 0, items: [['CK', 5]], status: OrderStatus.RECEIVED, pay: null });
-  await addOrder({ c: 'P. Rudi', staff: ana, daysAgo: 0, items: [['CKX', 5]], status: OrderStatus.PROCESSING, pay: PayMethod.CASH });
+  await addOrder({ c: 'P. Rudi', staff: ana, daysAgo: 0, items: [['CKX', 5]], status: OrderStatus.WASHING, pay: PayMethod.CASH });
   await addOrder({ c: 'Alma', staff: ana, daysAgo: 0, items: [['CK', 5]], status: OrderStatus.FINISHED, pay: null });
   await addOrder({ c: 'Dito PP', staff: fani, daysAgo: 0, items: [['SSB', 1], ['CB', 3]], status: OrderStatus.FINISHED, pay: PayMethod.QRIS });
 

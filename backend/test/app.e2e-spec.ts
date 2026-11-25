@@ -187,9 +187,11 @@ describe('Djotos Laundry API', () => {
   // ------------------------------------------------------------------ 4. Status & WA otomatis
   describe('Status order & WhatsApp otomatis', () => {
     it('alur Diterima → Diproses → Selesai → Diambil', async () => {
-      expect((await fani.patch(`/orders/${ids.o2}/status`, { status: 'PROCESSING' }).expect(200)).body.status).toBe('PROCESSING');
+      expect((await fani.patch(`/orders/${ids.o2}/status`, { status: 'WASHING' }).expect(200)).body.status).toBe('WASHING');
+      await fani.patch(`/orders/${ids.o2}/status`, { status: 'IRONING' }).expect(200);
       const fin = await fani.patch(`/orders/${ids.o2}/status`, { status: 'FINISHED' }).expect(200);
       expect(fin.body.finishedAt).toBeTruthy();
+      expect(fin.body.statusHistory.find((h: any) => h.after.status === 'IRONING').user.name).toBe('Fani');
     });
 
     it('status Selesai otomatis membuat & mengirim WA (via antrean), isi pesan benar', async () => {
@@ -206,7 +208,8 @@ describe('Djotos Laundry API', () => {
     });
 
     it('tidak mengirim WA ganda jika status maju-mundur', async () => {
-      await owner.patch(`/orders/${ids.o2}/status`, { status: 'PROCESSING' }).expect(200);
+      await owner.patch(`/orders/${ids.o2}/status`, { status: 'WASHING' }).expect(200);
+      await owner.patch(`/orders/${ids.o2}/status`, { status: 'IRONING' }).expect(200);
       await owner.patch(`/orders/${ids.o2}/status`, { status: 'FINISHED' }).expect(200);
       const r = await fani.get(`/wa/logs?orderId=${ids.o2}`);
       expect(r.body.filter((x: any) => x.type === 'FINISHED')).toHaveLength(1);
@@ -219,6 +222,7 @@ describe('Djotos Laundry API', () => {
 
     it('customer tanpa nomor WA → log GAGAL dengan alasan jelas, kirim ulang ditolak ramah', async () => {
       const o = await fani.post('/orders', { customerId: ids.nophone, items: [{ serviceId: svc.CB, qty: 3 }] }).expect(201);
+      await fani.patch(`/orders/${o.body.id}/status`, { status: 'WASHING' }).expect(200);
       await fani.patch(`/orders/${o.body.id}/status`, { status: 'FINISHED' }).expect(200);
       const logs = (await fani.get(`/wa/logs?orderId=${o.body.id}`)).body;
       expect(logs[0].status).toBe('FAILED');
@@ -232,6 +236,7 @@ describe('Djotos Laundry API', () => {
       const provider = app.get<WaProvider>(WA_PROVIDER);
       const spy = jest.spyOn(provider, 'send').mockResolvedValueOnce({ ok: false, error: 'gateway down' });
       const o = await fani.post('/orders', { customerId: ids.win, items: [{ serviceId: svc.CB, qty: 3 }] }).expect(201);
+      await fani.patch(`/orders/${o.body.id}/status`, { status: 'WASHING' }).expect(200);
       await fani.patch(`/orders/${o.body.id}/status`, { status: 'FINISHED' }).expect(200);
       const failed = await waitFor(async () => (await fani.get(`/wa/logs?orderId=${o.body.id}`)).body.find((l: any) => l.error === 'gateway down'));
       expect(failed).toMatchObject({ status: 'QUEUED', attempts: 1 }); // belum FAILED: masih menunggu percobaan ke-2
@@ -243,6 +248,7 @@ describe('Djotos Laundry API', () => {
 
     it('tombol "Kirim ulang" untuk log yang berstatus GAGAL', async () => {
       const o = await fani.post('/orders', { customerId: ids.win, items: [{ serviceId: svc.CB, qty: 3 }] }).expect(201);
+      await fani.patch(`/orders/${o.body.id}/status`, { status: 'WASHING' }).expect(200);
       await fani.patch(`/orders/${o.body.id}/status`, { status: 'FINISHED' }).expect(200);
       const log = await waitFor(async () => (await fani.get(`/wa/logs?orderId=${o.body.id}`)).body.find((l: any) => l.status === 'SENT'));
       await app.get(PrismaService).waLog.update({ where: { id: log.id }, data: { status: 'FAILED', error: 'simulasi gagal' } });
@@ -255,6 +261,7 @@ describe('Djotos Laundry API', () => {
     it('status Selesai tidak dikirim bila owner mematikan WA otomatis', async () => {
       await owner.put('/settings', { wa: { autoSendFinished: false } }).expect(200);
       const o = await fani.post('/orders', { customerId: ids.win, items: [{ serviceId: svc.CB, qty: 3 }] }).expect(201);
+      await fani.patch(`/orders/${o.body.id}/status`, { status: 'WASHING' }).expect(200);
       await fani.patch(`/orders/${o.body.id}/status`, { status: 'FINISHED' }).expect(200);
       expect((await fani.get(`/wa/logs?orderId=${o.body.id}`)).body).toHaveLength(0);
       await owner.put('/settings', { wa: { autoSendFinished: true } }).expect(200);
@@ -264,6 +271,7 @@ describe('Djotos Laundry API', () => {
     it('template WA bisa diedit owner dan dipakai', async () => {
       await owner.put('/settings', { wa: { finishedTemplate: 'Nota {no_nota} atas nama {nama} selesai. {status_bayar}' } }).expect(200);
       const o = await fani.post('/orders', { customerId: ids.nida, items: [{ serviceId: svc.CB, qty: 3 }] }).expect(201);
+      await fani.patch(`/orders/${o.body.id}/status`, { status: 'WASHING' }).expect(200);
       await fani.patch(`/orders/${o.body.id}/status`, { status: 'FINISHED' }).expect(200);
       const log = (await fani.get(`/wa/logs?orderId=${o.body.id}`)).body[0];
       expect(log.message).toBe(`Nota ${o.body.invoiceNo} atas nama Nida selesai. BELUM BAYAR — Rp 9.000`);
@@ -544,52 +552,15 @@ describe('Djotos Laundry API', () => {
   describe('Staff & Bonus', () => {
     const period = new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 7);
 
-    it('performa staff (owner) dan rekap harian seperti buku target', async () => {
+    it('performa staff (owner) dan akses rekap harian', async () => {
       const p = (await owner.get(`/staff/performance?period=${period}`)).body;
       const f = p.find((x: any) => x.name === 'Fani');
       expect(f.orderCount).toBeGreaterThan(0);
       expect(f.kg).toBeGreaterThan(0);
       await fani.get('/staff/performance').expect(403);
-
-      const date = new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 10);
-      await fani.post('/staff/ironing', { date, customerName: 'Pelanggan Fani', kg: 3 }).expect(201);
-      await ana.post('/staff/ironing', { date, customerName: 'Pelanggan Ana', kg: 2 }).expect(201);
-      const d = (await owner.get('/staff/daily-recap')).body;
-      expect(d.hari).toBeTruthy();
-      expect(d.staff.map((s: any) => s.name)).toEqual(expect.arrayContaining(['Fani', 'Ana']));
       const own = (await ana.get('/staff/daily-recap')).body;
-      expect(own.staff.map((s: any) => s.name)).toEqual(['Ana']); // staff hanya melihat miliknya
-      expect(own.staff[0].items[0]).toHaveProperty('kg');
+      expect(own).toHaveProperty('totalKg');
     });
-
-    it('cuci mengikuti nota, hasil setrika hanya dari catatan pengerjaan mandiri', async () => {
-      await owner.post('/users', { name: 'Dewi', username: 'dewi', password: 'dewi1234' }).expect(201);
-      const dewi = makeApi(app, (await login(app, 'dewi', 'dewi1234')).token);
-      const cust = (await dewi.post('/customers', { name: 'Uji Jenis Kerja' }).expect(201)).body.id;
-      const o = await dewi.post('/orders', { customerId: cust, items: [
-        { serviceId: svc.CB, qty: 4 },   // cuci
-        { serviceId: svc.CBX, qty: 3 },  // cuci (express)
-        { serviceId: svc.ST, qty: 5 },   // setrika
-        { serviceId: svc.CK, qty: 6 },   // cuci+setrika
-        { serviceId: svc.CKX, qty: 2 },  // cuci+setrika (express)
-        { serviceId: svc.SPK, qty: 2 },  // satuan: bukan kg, tidak dihitung
-      ] }).expect(201);
-      expect(o.body.items.map((i: any) => i.workType)).toEqual(['WASH', 'WASH', 'IRON', 'WASH_IRON', 'WASH_IRON', 'OTHER']);
-
-      const perf = (await owner.get(`/staff/performance?period=${period}`)).body.find((x: any) => x.name === 'Dewi');
-      // Cuci = CB 4 + CBX 3 + CK 6 + CKX 2 = 15; nota tidak menambah hasil setrika.
-      expect(perf).toMatchObject({ kg: 20, kgWash: 15, kgIron: 0 });
-      expect(perf).not.toHaveProperty('kgWashIron');
-
-      expect((await dewi.get('/staff/daily-recap')).body.staff).toEqual([]);
-      const date = new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 10);
-      await dewi.post('/staff/ironing', { date, customerName: 'Hasil kerja Dewi', kg: 7.5 }).expect(201);
-      const rec = (await dewi.get('/staff/daily-recap')).body.staff[0];
-      expect(rec).toMatchObject({ name: 'Dewi', totalKg: 7.5 });
-      const updated = (await owner.get(`/staff/performance?period=${period}`)).body.find((x: any) => x.name === 'Dewi');
-      expect(updated).toMatchObject({ kg: 20, kgWash: 15, kgIron: 7.5 });
-    });
-
     it('jenis kerja tersimpan pada nota (snapshot): mengubah layanan tidak mengubah nota lama', async () => {
       const g = (await owner.post('/services', { code: 'TST', name: 'Layanan Uji', category: 'REGULER', unit: 'KG', rate: 1000, workType: 'IRON' }).expect(201)).body;
       expect(g.workType).toBe('IRON');
