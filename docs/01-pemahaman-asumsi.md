@@ -22,9 +22,9 @@
 
 ## Jenis kerja & performa staff
 Tiap layanan per kg punya **jenis kerja**: **Cuci** (CB, CBX), **Setrika** (ST, STX), atau **Cuci + Setrika** sekaligus (CK, CKX); satuan = Lainnya. Jenis kerja disalin ke item nota saat nota dibuat, jadi mengubah layanan tidak mengubah nota lama.
-Mulai perubahan November 2026, **Hasil Setrika Harian** dicatat mandiri: tanggal selesai setrika (tanggal lokal WIB), pegawai yang mengerjakan, nama customer, dan kg (maksimal 2 desimal). Tidak ada relasi ke nota atau cucian masuk; customer boleh langsung diketik tanpa membuat master customer. Nama dengan perbedaan huruf besar/kecil dan spasi digabung per pegawai per tanggal. Nama yang sama memang dianggap customer yang sama dalam rekap tersebut.
-Rekap menampilkan total per customer, per pegawai, dan total tanggal yang dipilih. Staff hanya dapat mencatat, mengubah, menghapus, dan melihat hasil sendiri; owner dapat mengelola semua pegawai. Hapus bersifat soft delete, perubahan dicatat dalam audit.
-Di **Staff & Performa**, kolom **Hasil setrika** berasal dari catatan mandiri berdasarkan tanggal pengerjaan. Kolom cucian masuk/cuci/omzet tetap berasal dari nota atas nama penerima. Nota lama tidak otomatis dikonversi menjadi hasil setrika karena penerima belum tentu pelaksana. Perhitungan bonus tetap memakai aturan dan dasar nota yang sudah ada.
+**Hasil Setrika Harian** berasal dari sesi kerja pada nota customer yang sudah masuk tahap Setrika. Pegawai mengisi KG yang dikerjakan saat itu (maksimal 2 desimal); beberapa pegawai dapat membagi satu nota dan melanjutkannya pada hari berikutnya. Total semua sesi tidak boleh melebihi KG setrika dalam nota. Nota baru bisa ditandai Selesai setelah seluruh KG tercatat. Tombol Setrika di beranda muncul selama ada nota pada tahap Setrika dengan KG tersisa.
+Rekap menampilkan total per customer, per pegawai, dan per tanggal pengerjaan. Staff hanya melihat hasilnya sendiri; owner melihat semua pegawai. Sesi menyimpan pegawai dan waktu, serta dicatat dalam audit. Hasil setrika historis yang sebelumnya dihitung dari penyelesaian nota dipindahkan ke sesi saat migrasi; catatan setrika mandiri lama tetap diarsipkan.
+Di **Staff & Performa**, kolom **Hasil setrika** berasal dari sesi kerja berdasarkan tanggal pengerjaan. Kolom cucian masuk/cuci/omzet tetap berasal dari nota atas nama penerima. Perhitungan bonus tetap memakai aturan dan dasar nota yang sudah ada.
 Estimasi jam/hari selesai **tidak dipakai** (dihapus dari order dan dari data layanan).
 
 ## Rumus harga

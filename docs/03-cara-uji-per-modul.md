@@ -21,9 +21,7 @@ Set `WA_PROVIDER=fonnte` tanpa token → pesan gagal dengan alasan jelas ("FONNT
 
 ## Hasil Setrika Harian dari Pesanan
 1. Buat nota untuk layanan Setrika atau Cuci + Setrika. Layanan cuci saja tidak masuk rekap setrika.
-2. Ubah status mengikuti tahap pada nota: Cuci (jika ada), Setrika, lalu Selesai.
-3. Staff yang mengubah status dari Setrika ke Selesai tercatat sebagai penyelesai. Rekap menampilkan total per staff, total per customer, dan tautan ke nota asal.
-4. Staff hanya melihat hasil yang diselesaikannya; Owner melihat semua staff. Tidak ada input hasil setrika di luar nota.
-5. Nota yang belum selesai tahap setrikanya tidak masuk rekap. Setiap nota dihitung sekali berdasarkan penyelesaian terakhirnya.
-
-Verifikasi perubahan: backend build, 20 unit test dan 67 e2e test lulus di PostgreSQL/Redis lokal terisolasi; frontend typecheck dan production build lulus. Uji browser mencakup tambah/ubah/hapus, desimal koma, owner memilih pegawai, filter tanggal, isolasi data staff, serta lebar 320/390/1440 px tanpa overflow horizontal. Migrasi setrika lama diarsipkan saat deploy; rekap baru hanya membaca penyelesaian tahap Setrika dari nota.
+2. Ubah status mengikuti tahap pada nota: Cuci (jika ada), lalu Setrika. Tombol Setrika muncul di beranda saat ada nota dengan sisa KG.
+3. Catat sebagian KG dari tombol Setrika, misalnya 5 kg dari nota 20 kg. Staff lain dapat mencatat 10 kg dan 5 kg pada waktu lain. Setiap sesi muncul dalam rekap pegawai pada tanggal pengerjaannya dan tertaut ke nota asal.
+4. Coba mencatat lebih dari sisa KG, termasuk dua input bersamaan: server menolak kelebihan. Status Selesai juga ditolak selama masih ada sisa KG.
+5. Staff hanya melihat hasil sendiri pada rekap; Owner melihat semua staff. Setelah 20 kg penuh, tombol Setrika hilang jika tidak ada nota lain dan nota dapat ditandai Selesai.

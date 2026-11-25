@@ -189,6 +189,7 @@ describe('Djotos Laundry API', () => {
     it('alur Diterima → Diproses → Selesai → Diambil', async () => {
       expect((await fani.patch(`/orders/${ids.o2}/status`, { status: 'WASHING' }).expect(200)).body.status).toBe('WASHING');
       await fani.patch(`/orders/${ids.o2}/status`, { status: 'IRONING' }).expect(200);
+      await fani.post('/staff/ironing', { orderId: ids.o2, kg: 5 }).expect(201);
       const fin = await fani.patch(`/orders/${ids.o2}/status`, { status: 'FINISHED' }).expect(200);
       expect(fin.body.finishedAt).toBeTruthy();
       expect(fin.body.statusHistory.find((h: any) => h.after.status === 'IRONING').user.name).toBe('Fani');

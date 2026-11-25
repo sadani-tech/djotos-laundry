@@ -102,11 +102,11 @@ Database test dibuat dengan: `createdb djotos_test` (atau atur `TEST_DATABASE_UR
 | Kebutuhan | Lokasi di aplikasi |
 |---|---|
 | Nota, kode layanan (CK, CB, ST, CKX, CBX, STX + satuan) | **Order → Order Baru**; owner mengubah di **Lainnya → Layanan & Harga** |
-| Status Diterima → Diproses → Selesai → Diambil, WA otomatis saat Selesai | halaman nota; **Log WhatsApp** |
+| Status Diterima → Cuci → Setrika (sesuai layanan) → Selesai → Diambil, WA otomatis saat Selesai | halaman nota; **Log WhatsApp** |
 | Cash + QRIS, penanda BELUM BAYAR, Tandai Lunas | halaman nota, daftar order, rekap customer |
 | Cashflow harian/mingguan/bulanan, pembanding Cash vs QRIS, Excel | tab **Cashflow** |
 | Rekapan customer + Excel | tab **Customer** |
-| Hasil setrika harian mandiri, total per customer/pegawai/hari | **Lainnya → Hasil Setrika Harian**; input kg tanpa nota |
+| Catat KG setrika per sesi dan rekap per customer/pegawai/hari | tombol **Setrika** di beranda saat ada sisa pekerjaan; **Lainnya → Hasil Setrika Harian** |
 | Akun staff masing-masing, performa | **Lainnya → Staff & Performa** |
 | Bonus staff | **Bonus Saya** / **Bonus Staff** / **Aturan Bonus** |
 | FREE 9× cuci → 1× gratis | **Lainnya → Program FREE** |

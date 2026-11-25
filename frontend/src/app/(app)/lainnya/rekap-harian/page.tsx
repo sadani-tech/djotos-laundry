@@ -18,7 +18,7 @@ export default function DailyRecapPage() {
   return (
     <div>
       <PageHeader title="Hasil Setrika Harian" back="/lainnya" />
-      <p className="mb-4 text-sm text-slate-600">Rekap otomatis dari pesanan pelanggan saat staff menandai tahap setrika selesai.</p>
+      <p className="mb-4 text-sm text-slate-600">Rekap KG yang dicatat setiap pegawai dari pesanan pelanggan, termasuk pekerjaan sebagian yang dilanjutkan di hari lain.</p>
       <div className="flex items-center justify-between gap-2">
         <button onClick={() => setDate(addDays(date, -1))} aria-label="Hari sebelumnya" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white shadow-sm"><ChevronLeft /></button>
         <input aria-label="Tanggal rekap" type="date" className="input min-w-0 max-w-[11rem] text-center font-bold" value={date} onChange={(e) => e.target.value && setDate(e.target.value)} />
@@ -31,7 +31,7 @@ export default function DailyRecapPage() {
             <p className="text-sm font-semibold text-brand-700">{isOwner ? 'Total setrika semua pegawai' : 'Total setrika saya'} pada tanggal ini</p>
             <p className="mt-1 text-3xl font-extrabold text-brand-800">{kg(data.totalKg)}</p>
           </div>
-          {data.staff.length === 0 ? <Empty title="Belum ada setrika selesai di tanggal ini" hint="Hasil akan tercatat saat staff menandai tahap Setrika pada pesanan pelanggan sebagai selesai." /> : data.staff.map((s) => (
+          {data.staff.length === 0 ? <Empty title="Belum ada setrika dicatat di tanggal ini" hint="Catat KG yang dikerjakan dari menu Setrika di beranda." /> : data.staff.map((s) => (
             <div key={s.userId} className="card">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                 <p className="min-w-0 break-words text-lg font-bold">{s.name}</p>
@@ -44,7 +44,7 @@ export default function DailyRecapPage() {
                 {s.items.map((item) => <div key={item.customerId} className="flex items-center justify-between gap-3 py-2 text-sm"><span className="min-w-0 break-words">{item.name}</span><span className="shrink-0 font-bold">{kg(item.kg)}</span></div>)}
               </div>
               <details className="mt-4 border-t border-line pt-3">
-                <summary className="cursor-pointer text-sm font-semibold text-brand-700">Pesanan yang selesai disetrika ({s.entries.length})</summary>
+                <summary className="cursor-pointer text-sm font-semibold text-brand-700">Sesi setrika dari pesanan ({s.entries.length})</summary>
                 <div className="mt-2 divide-y divide-line">
                   {s.entries.map((entry) => <Link key={entry.id} href={`/order/${entry.orderId}`} className="flex items-center justify-between gap-2 py-2 text-sm hover:text-brand-700">
                     <span className="min-w-0"><span className="block truncate font-semibold">{entry.customerName}</span><span className="text-slate-500">{entry.invoiceNo} · {new Date(entry.completedAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span></span>

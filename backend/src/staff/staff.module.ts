@@ -1,5 +1,6 @@
-import { Controller, Get, Injectable, Module, Query } from '@nestjs/common';
+import { Body, Controller, Get, Injectable, Module, Post, Query } from '@nestjs/common';
 import { Role } from '@prisma/client';
+import { IsInt, IsNumber, Max, Min } from 'class-validator';
 import { AuthUser, CurrentUser, OwnerOnly } from '../common/auth';
 import { bad } from '../common/errors';
 import { roundKg } from '../common/pricing';
@@ -12,12 +13,17 @@ export interface StaffStats {
   omzet: number; // total semua nota (tidak batal)
   unpaid: number;
   kg: number;
-  // Hasil setrika dari pesanan yang tahap setrikanya ditandai selesai.
+  // Hasil setrika dari sesi kerja yang terkait dengan pesanan.
   kgWash: number;
   // Dasar bonus: hanya nota lunas & bukan FREE
   bonusOrders: number;
   bonusOmzet: number;
   bonusKg: number;
+}
+
+class RecordIroningDto {
+  @IsInt() @Min(1) orderId: number;
+  @IsNumber({ maxDecimalPlaces: 2 }) @Min(0.01) @Max(1000) kg: number;
 }
 
 @Injectable()
@@ -79,7 +85,7 @@ export class StaffStatsService {
       .sort((a, b) => b.omzet - a.omzet);
   }
 
-  /** Hasil setrika berdasarkan waktu tahap Setrika pada nota ditandai selesai. */
+  /** Hasil setrika berdasarkan waktu setiap sesi kerja. */
   dailyRecap(user: AuthUser, date: string) {
     return this.ironing.dailyRecap(user, date);
   }
@@ -87,7 +93,7 @@ export class StaffStatsService {
 
 @Controller('staff')
 export class StaffController {
-  constructor(private stats: StaffStatsService) {}
+  constructor(private stats: StaffStatsService, private ironing: IroningService) {}
 
   @OwnerOnly() @Get('performance')
   performance(@Query('period') period: string = currentPeriod()) {
@@ -97,6 +103,16 @@ export class StaffController {
   @Get('daily-recap')
   daily(@CurrentUser() user: AuthUser, @Query('date') date: string = todayStr()) {
     return this.stats.dailyRecap(user, date);
+  }
+
+  @Get('ironing/pending')
+  pendingIroning() {
+    return this.ironing.pending();
+  }
+
+  @Post('ironing')
+  recordIroning(@CurrentUser() user: AuthUser, @Body() dto: RecordIroningDto) {
+    return this.ironing.record(dto.orderId, dto.kg, user);
   }
 }
 

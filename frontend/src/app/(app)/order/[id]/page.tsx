@@ -9,7 +9,7 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { dateTimeFmt, phoneShow, qtyLabel, rupiah, waLink } from '@/lib/format';
 import { refreshAll, useApi } from '@/lib/swr';
-import type { Order, OrderStatus, PayMethod } from '@/lib/types';
+import type { Order, OrderStatus, PayMethod, PendingIroning } from '@/lib/types';
 
 const ORDER_IDX: Record<OrderStatus, number> = { RECEIVED: 0, WASHING: 1, IRONING: 2, FINISHED: 3, PICKED_UP: 4, CANCELLED: -1 };
 function Detail() {
@@ -20,6 +20,7 @@ function Detail() {
   const confirm = useConfirm();
   const { run, busy } = useAction();
   const { data: o, error, mutate } = useApi<Order>(`/orders/${id}`);
+  const ironing = useApi<PendingIroning[]>(o?.status === 'IRONING' ? '/staff/ironing/pending' : null);
   const [payOpen, setPayOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [discOpen, setDiscOpen] = useState(false);
@@ -123,6 +124,7 @@ function Detail() {
             ))}
           </ol>
           <AdvanceButton order={o} size="lg" onDone={reload} className="mt-4 w-full" />
+          {o.status === 'IRONING' && ironing.data?.some((item) => item.orderId === o.id) && <Link href="/setrika" className="mt-3 block rounded-xl bg-orange-50 px-4 py-3 text-center text-sm font-bold text-orange-800">Catat hasil setrika · sisa {qtyLabel(ironing.data.find((item) => item.orderId === o.id)!.remainingKg, 'KG')}</Link>}
         </div>
       )}
 

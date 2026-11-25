@@ -52,6 +52,12 @@ export interface Dashboard {
   incomeToday: { cash: number; qris: number; total: number; scope: 'all' | 'mine' };
 }
 
+export interface PendingIroning {
+  orderId: number; invoiceNo: string; receivedAt: string;
+  customer: { id: number; name: string };
+  totalKg: number; doneKg: number; remainingKg: number;
+}
+
 export interface CashSummary {
   period: string; from: string; to: string; scope: 'all' | 'mine';
   income: { cash: number; qris: number; total: number; cashPct: number; qrisPct: number; count: number };

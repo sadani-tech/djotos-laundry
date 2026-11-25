@@ -92,6 +92,7 @@ model User {
   freeClaims   FreeClaim[]
   bonusRecords BonusRecord[]
   auditLogs    AuditLog[]
+  ironingEntries IroningEntry[]
 
   @@map("users")
 }
@@ -161,6 +162,7 @@ model Order {
   customer  Customer    @relation(fields: [customerId], references: [id])
   staff     User        @relation(fields: [staffId], references: [id])
   items     OrderItem[]
+  ironingEntries IroningEntry[]
   payments  Payment[]
   waLogs    WaLog[]
   consumedBy FreeClaim? @relation("ClaimConsumes", fields: [freeClaimId], references: [id])
@@ -190,6 +192,23 @@ model OrderItem {
 
   @@index([orderId])
   @@map("order_items")
+}
+
+// Setiap sesi setrika selalu terkait dengan satu nota dan pegawai yang mengerjakannya.
+model IroningEntry {
+  id        Int      @id @default(autoincrement())
+  orderId   Int
+  staffId   Int
+  kg        Decimal  @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  staff User  @relation(fields: [staffId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([staffId, createdAt])
+  @@index([createdAt])
+  @@map("order_ironing_entries")
 }
 
 model Payment {

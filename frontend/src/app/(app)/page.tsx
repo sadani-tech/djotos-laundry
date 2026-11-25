@@ -1,5 +1,5 @@
 'use client';
-import { Banknote, ClipboardList, Clock3, PackageCheck, Plus, Search, Sparkles } from 'lucide-react';
+import { Banknote, ClipboardList, Clock3, PackageCheck, Plus, Search, Shirt, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { OrderCard } from '@/components/order';
@@ -7,7 +7,7 @@ import { Button, Chip, Empty, ErrorBox, LogoMark, Spinner } from '@/components/u
 import { useAuth } from '@/lib/auth';
 import { longDate, rupiah, rupiahShort, todayStr } from '@/lib/format';
 import { useApi } from '@/lib/swr';
-import type { Dashboard, Order } from '@/lib/types';
+import type { Dashboard, Order, PendingIroning } from '@/lib/types';
 
 type Filter = 'today' | 'unpaid' | 'process' | 'ready' | 'all';
 
@@ -28,6 +28,7 @@ export default function OrderHome() {
   const dash = useApi<Dashboard>('/dashboard', { refreshInterval: 30_000 });
   const params = [FILTERS.find((f) => f.key === filter)!.query(today), q.trim() ? `q=${encodeURIComponent(q.trim())}` : ''].filter(Boolean).join('&');
   const orders = useApi<Order[]>(`/orders?${params}`, { refreshInterval: 30_000 });
+  const ironing = useApi<PendingIroning[]>('/staff/ironing/pending', { refreshInterval: 30_000 });
   const d = dash.data;
   const activeLabel = FILTERS.find((f) => f.key === filter)?.label;
 
@@ -74,6 +75,9 @@ export default function OrderHome() {
       <Link href="/order/baru" className="mt-5 block">
         <Button size="lg" className="w-full rounded-2xl"><Plus className="h-6 w-6" /> Buat Order Baru</Button>
       </Link>
+      {!!ironing.data?.length && <Link href="/setrika" className="mt-3 block rounded-2xl border border-orange-200 bg-orange-50 px-5 py-4 font-bold text-orange-800 shadow-sm hover:bg-orange-100">
+        <span className="flex items-center justify-between gap-3"><span className="flex items-center gap-3"><Shirt className="h-6 w-6" /> Setrika</span><span className="text-sm">{ironing.data.length} order · {ironing.data.reduce((sum, item) => sum + item.remainingKg, 0).toFixed(2).replace('.', ',')} kg tersisa</span></span>
+      </Link>}
 
       {/* Daftar */}
       <section className="mt-8">
